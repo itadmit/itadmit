@@ -16,6 +16,8 @@ export default function AdminDashboard() {
   const [bgFiles, setBgFiles] = useState<Array<{name: string; path: string}>>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedProject, setEditedProject] = useState<ProjectData | null>(null);
+  const [uploading, setUploading] = useState<{type: string; progress: number} | null>(null);
+  const [draggedProject, setDraggedProject] = useState<string | null>(null);
 
   useEffect(() => {
     // בדיקת אימות
@@ -50,6 +52,10 @@ export default function AdminDashboard() {
       });
 
     // טעינת תמונות
+    loadImages();
+  }, [authenticated]);
+
+  const loadImages = () => {
     fetch('/api/images')
       .then(res => res.json())
       .then(data => {
@@ -57,7 +63,47 @@ export default function AdminDashboard() {
         setBgFiles(data.backgrounds || []);
       })
       .catch(err => console.error('Error loading images:', err));
-  }, [authenticated]);
+  };
+
+  const handleFileUpload = async (file: File, type: 'logo' | 'background') => {
+    setUploading({ type, progress: 0 });
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // רענון רשימת התמונות
+        loadImages();
+        
+        // אם אנחנו בעריכה, עדכן את הפרויקט עם התמונה החדשה
+        if (editedProject) {
+          if (type === 'logo') {
+            setEditedProject({ ...editedProject, logoSrc: data.path });
+          } else {
+            setEditedProject({ ...editedProject, backgroundImage: data.path });
+          }
+        }
+        
+        alert(`הקובץ ${data.fileName} הועלה בהצלחה!`);
+      } else {
+        alert('שגיאה בהעלאת הקובץ');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('שגיאה בהעלאת הקובץ');
+    } finally {
+      setUploading(null);
+    }
+  };
 
   const handleDuplicate = async (id: string) => {
     try {
@@ -135,6 +181,68 @@ export default function AdminDashboard() {
     router.push('/login');
   };
 
+  const handleDragStart = (e: React.DragEvent, projectId: string) => {
+    setDraggedProject(projectId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', projectId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetProjectId: string) => {
+    e.preventDefault();
+    
+    if (!draggedProject || draggedProject === targetProjectId) {
+      setDraggedProject(null);
+      return;
+    }
+
+    const draggedIndex = projects.findIndex(p => p.id === draggedProject);
+    const targetIndex = projects.findIndex(p => p.id === targetProjectId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedProject(null);
+      return;
+    }
+
+    // יצירת מערך חדש עם הסדר המעודכן
+    const newProjects = [...projects];
+    const [removed] = newProjects.splice(draggedIndex, 1);
+    newProjects.splice(targetIndex, 0, removed);
+
+    // עדכון הסדר ב-API
+    try {
+      const projectIds = newProjects.map(p => p.id);
+      const res = await fetch('/api/projects', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectIds }),
+      });
+
+      if (res.ok) {
+        setProjects(newProjects);
+        // אם הפרויקט שנבחר הוא אחד מהפרויקטים שנגררו, עדכן אותו
+        if (selectedProject?.id === draggedProject) {
+          setSelectedProject(removed);
+        }
+      } else {
+        alert('שגיאה בעדכון הסדר');
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      alert('שגיאה בעדכון הסדר');
+    }
+
+    setDraggedProject(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedProject(null);
+  };
+
   if (!authenticated || loading) {
     return <div className="h-screen flex items-center justify-center text-white">טוען...</div>;
   }
@@ -179,13 +287,25 @@ export default function AdminDashboard() {
               </button>
             </div>
             <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {projects.map((project) => (
+              {projects.length === 0 ? (
+                <div className="text-gray-400 text-center py-8">
+                  אין פרויקטים. לחץ על &quot;חדש&quot; כדי להוסיף פרויקט.
+                </div>
+              ) : (
+                projects.map((project) => (
                 <div
                   key={project.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, project.id)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, project.id)}
+                  onDragEnd={handleDragEnd}
                   className={`p-3 rounded cursor-pointer transition-colors ${
                     selectedProject?.id === project.id
                       ? 'bg-blue-600'
                       : 'bg-gray-700 hover:bg-gray-600'
+                  } ${
+                    draggedProject === project.id ? 'opacity-50' : ''
                   }`}
                   onClick={() => {
                     setSelectedProject(project);
@@ -194,9 +314,12 @@ export default function AdminDashboard() {
                   }}
                 >
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold">{project.title}</h3>
-                      <p className="text-sm text-gray-400 truncate">{project.description}</p>
+                    <div className="flex-1 flex items-center gap-2">
+                      <span className="text-gray-500 text-xs cursor-move select-none">☰</span>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{project.title}</h3>
+                        <p className="text-sm text-gray-400 truncate">{project.description}</p>
+                      </div>
                     </div>
                     <div className="flex gap-2 ml-2">
                       <button
@@ -222,7 +345,8 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -316,23 +440,38 @@ export default function AdminDashboard() {
                             />
                           </div>
                         )}
-                        <select
-                          value={editedProject.backgroundImage || ''}
-                          onChange={(e) =>
-                            setEditedProject({
-                              ...editedProject,
-                              backgroundImage: e.target.value || undefined,
-                            })
-                          }
-                          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded"
-                        >
-                          <option value="">בחר רקע</option>
-                          {bgFiles.map((file) => (
-                            <option key={file.path} value={file.path}>
-                              {file.name}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex-1 flex flex-col gap-2">
+                          <select
+                            value={editedProject.backgroundImage || ''}
+                            onChange={(e) =>
+                              setEditedProject({
+                                ...editedProject,
+                                backgroundImage: e.target.value || undefined,
+                              })
+                            }
+                            className="bg-gray-700 text-white px-4 py-2 rounded"
+                          >
+                            <option value="">בחר רקע</option>
+                            {bgFiles.map((file) => (
+                              <option key={file.path} value={file.path}>
+                                {file.name}
+                              </option>
+                            ))}
+                          </select>
+                          <label className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-center cursor-pointer text-sm">
+                            {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, 'background');
+                              }}
+                              disabled={uploading?.type === 'background'}
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
 
@@ -350,23 +489,38 @@ export default function AdminDashboard() {
                             />
                           </div>
                         )}
-                        <select
-                          value={editedProject.backgroundImageMobile || ''}
-                          onChange={(e) =>
-                            setEditedProject({
-                              ...editedProject,
-                              backgroundImageMobile: e.target.value || undefined,
-                            })
-                          }
-                          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded"
-                        >
-                          <option value="">אין רקע מובייל</option>
-                          {bgFiles.map((file) => (
-                            <option key={file.path} value={file.path}>
-                              {file.name}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex-1 flex flex-col gap-2">
+                          <select
+                            value={editedProject.backgroundImageMobile || ''}
+                            onChange={(e) =>
+                              setEditedProject({
+                                ...editedProject,
+                                backgroundImageMobile: e.target.value || undefined,
+                              })
+                            }
+                            className="bg-gray-700 text-white px-4 py-2 rounded"
+                          >
+                            <option value="">אין רקע מובייל</option>
+                            {bgFiles.map((file) => (
+                              <option key={file.path} value={file.path}>
+                                {file.name}
+                              </option>
+                            ))}
+                          </select>
+                          <label className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-center cursor-pointer text-sm">
+                            {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע מובייל חדש'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) handleFileUpload(file, 'background');
+                              }}
+                              disabled={uploading?.type === 'background'}
+                            />
+                          </label>
+                        </div>
                       </div>
                     </div>
 

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getProjects, addProject, updateProject, deleteProject } from '@/lib/projects-db';
+import { getProjects, addProject, updateProject, deleteProject, updateProjectsOrder } from '@/lib/projects-db';
 import { ProjectData } from '@/lib/projects';
 import { verifySession } from '@/lib/auth';
 import { cookies } from 'next/headers';
@@ -82,6 +82,29 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
+  }
+}
+
+// PATCH - עדכון סדר הפרויקטים
+export async function PATCH(request: Request) {
+  try {
+    // בדיקת אימות
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('admin_session')?.value;
+    if (!sessionToken || !verifySession(sessionToken)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { projectIds } = await request.json();
+    
+    if (!Array.isArray(projectIds)) {
+      return NextResponse.json({ error: 'projectIds must be an array' }, { status: 400 });
+    }
+    
+    updateProjectsOrder(projectIds);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
   }
 }
 

@@ -42,10 +42,56 @@ function initDb(database: Database.Database) {
       whatsappText TEXT,
       backgroundImage TEXT,
       backgroundImageMobile TEXT,
+      display_order INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+  
+  // הוספת עמודת display_order אם לא קיימת (migration)
+  try {
+    database.exec(`ALTER TABLE projects ADD COLUMN display_order INTEGER DEFAULT 0`);
+  } catch (e) {
+    // העמודה כבר קיימת, זה בסדר
+  }
+
+  // אם הטבלה ריקה, נטען את הנתונים מה-JSON
+  const count = database.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number };
+  if (count.count === 0) {
+    try {
+      const { getProjects: getProjectsJson } = require('./projects');
+      const projects = getProjectsJson();
+      
+      if (projects.length > 0) {
+        const insert = database.prepare(`
+          INSERT INTO projects 
+          (id, title, description, logoSrc, logoWidth, logoHeight, siteUrl, whatsappText, backgroundImage, backgroundImageMobile)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        
+        const transaction = database.transaction((projects: any[]) => {
+          for (const project of projects) {
+            insert.run(
+              project.id,
+              project.title,
+              project.description,
+              project.logoSrc,
+              project.logoWidth || null,
+              project.logoHeight || null,
+              project.siteUrl,
+              project.whatsappText || null,
+              project.backgroundImage || null,
+              project.backgroundImageMobile || null
+            );
+          }
+        });
+        
+        transaction(projects);
+      }
+    } catch (error) {
+      console.error('Error loading initial data from JSON:', error);
+    }
+  }
 }
 
 // סגירת החיבור

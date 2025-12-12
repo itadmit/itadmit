@@ -7,12 +7,14 @@ export function getProjects(): ProjectData[] {
   const db = getDb();
   
   if (db) {
-    // SQLite זמין (לוקאלי)
-    const projects = db.prepare('SELECT * FROM projects ORDER BY created_at DESC').all() as ProjectData[];
+    // SQLite זמין (לוקאלי) - ממוין לפי display_order ואז created_at
+    const projects = db.prepare('SELECT * FROM projects ORDER BY display_order ASC, created_at DESC').all() as ProjectData[];
     return projects;
   } else {
     // Vercel production - קורא מ-JSON
-    return getProjectsJson();
+    const projects = getProjectsJson();
+    // מיון לפי display_order אם קיים
+    return projects.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
   }
 }
 
@@ -128,5 +130,35 @@ export function duplicateProject(id: string): ProjectData | null {
   
   addProject(duplicated);
   return duplicated;
+}
+
+// עדכון סדר הפרויקטים
+export function updateProjectsOrder(projectIds: string[]): void {
+  const db = getDb();
+  
+  if (db) {
+    const update = db.prepare('UPDATE projects SET display_order = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?');
+    
+    const transaction = db.transaction((ids: string[]) => {
+      ids.forEach((id, index) => {
+        update.run(index, id);
+      });
+    });
+    
+    transaction(projectIds);
+  } else {
+    // Vercel production - עדכון ב-JSON
+    const projects = getProjects();
+    const reorderedProjects = projectIds.map(id => projects.find(p => p.id === id)).filter(Boolean) as ProjectData[];
+    const remainingProjects = projects.filter(p => !projectIds.includes(p.id));
+    const allProjects = [...reorderedProjects, ...remainingProjects];
+    
+    // עדכון display_order
+    allProjects.forEach((project, index) => {
+      (project as any).display_order = index;
+    });
+    
+    saveProjects(allProjects);
+  }
 }
 
