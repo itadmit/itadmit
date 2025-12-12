@@ -9,39 +9,7 @@ import Preloader from "@/components/Preloader";
 import MenuPopup from "@/components/MenuPopup";
 import CircularTimer from "@/components/CircularTimer";
 
-// קריאת פרויקטים מה-API
-function useProjects() {
-  const [projects, setProjects] = useState<ProjectData[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch('/api/projects')
-      .then(res => res.json())
-      .then(data => {
-        setProjects(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        // Fallback - נטען את ה-JSON ישירות
-        fetch('/data/projects.json')
-          .then(res => res.json())
-          .then(data => {
-            setProjects(data);
-            setLoading(false);
-          })
-          .catch(() => {
-            // אם גם זה נכשל, נשתמש ב-initialProjects
-            setProjects(initialProjects);
-            setLoading(false);
-          });
-      });
-  }, []);
-
-  return { projects, loading };
-}
-
-// פונקציה להגדרת פרויקטים התחלתיים (fallback)
-const initialProjects: ProjectData[] = [
+export const projects: ProjectData[] = [
   {
     id: "aline",
     title: "עדן פינס",
@@ -249,14 +217,10 @@ const initialProjects: ProjectData[] = [
 ];
 
 export default function Home() {
-  const { projects, loading } = useProjects();
   const [showPreloader, setShowPreloader] = useState(true);
   const [activeSection, setActiveSection] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Fallback לפרויקטים התחלתיים אם עדיין טוען או אין פרויקטים
-  const displayProjects = (loading || projects.length === 0) ? initialProjects : projects;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -320,7 +284,7 @@ export default function Home() {
       
       {/* Navigation Dots - Left Side */}
       <div className="fixed left-6 md:left-8 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
-        {displayProjects.map((project, index) => (
+        {projects.map((project, index) => (
           <div key={project.id} className="relative group">
             <a
               href={`#${project.id}`}
@@ -343,7 +307,7 @@ export default function Home() {
           <a
             href="#more-projects"
             className={`w-3 h-3 rounded-full transition-all duration-300 block ${
-              activeSection === displayProjects.length 
+              activeSection === projects.length 
                 ? 'bg-white scale-150' 
                 : 'bg-white/60 hover:bg-white'
             }`}
@@ -360,7 +324,7 @@ export default function Home() {
           <a
             href="#contact"
             className={`w-3 h-3 rounded-full transition-all duration-300 block ${
-              activeSection === displayProjects.length + 1 
+              activeSection === projects.length + 1 
                 ? 'bg-white scale-150' 
                 : 'bg-white/60 hover:bg-white'
             }`}
@@ -376,14 +340,14 @@ export default function Home() {
       </div>
       
       <div className="flex flex-col">
-        {displayProjects.map((project, index) => {
-          const nextProject = displayProjects[index + 1];
+        {projects.map((project, index) => {
+          const nextProject = projects[index + 1];
           const nextId = nextProject ? nextProject.id : 'more-projects';
           
           return (
             <ProjectSection 
               key={project.id} 
-              project={{...project, isLast: index === displayProjects.length - 1}} 
+              project={{...project, isLast: index === projects.length - 1}} 
               nextId={nextId}
             />
           );
