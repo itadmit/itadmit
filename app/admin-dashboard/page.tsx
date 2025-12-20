@@ -4,7 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectData } from '@/components/ProjectSection';
-import { Copy, Trash2, Plus, Save, X, LogOut } from 'lucide-react';
+import { Copy, Trash2, Plus, Save, X, LogOut, ImageIcon, Check, Users, MessageSquare } from 'lucide-react';
+import Link from 'next/link';
+
+// טיפוס למודל בחירת תמונה
+type MediaModalType = 'logo' | 'desktop' | 'mobile' | null;
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -18,6 +22,39 @@ export default function AdminDashboard() {
   const [editedProject, setEditedProject] = useState<ProjectData | null>(null);
   const [uploading, setUploading] = useState<{type: string; progress: number} | null>(null);
   const [draggedProject, setDraggedProject] = useState<string | null>(null);
+  const [mediaModal, setMediaModal] = useState<MediaModalType>(null);
+  const [deletingImage, setDeletingImage] = useState<string | null>(null);
+
+  const handleDeleteImage = async (imagePath: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!confirm('האם אתה בטוח שברצונך למחוק את התמונה לצמיתות?')) return;
+
+    setDeletingImage(imagePath);
+    
+    try {
+      const res = await fetch('/api/images/delete', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagePath }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // רענון רשימת התמונות
+        loadImages();
+        alert('התמונה נמחקה בהצלחה!');
+      } else {
+        alert(data.error || 'שגיאה במחיקת התמונה');
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('שגיאה במחיקת התמונה');
+    } finally {
+      setDeletingImage(null);
+    }
+  };
 
   useEffect(() => {
     // בדיקת אימות
@@ -252,13 +289,29 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">ניהול פרויקטים</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded flex items-center gap-2"
-          >
-            <LogOut className="w-4 h-4" />
-            התנתק
-          </button>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin-dashboard/leads"
+              className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              <Users className="w-4 h-4" />
+              לידים
+            </Link>
+            <Link
+              href="/admin-dashboard/questions"
+              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded flex items-center gap-2 transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              שאלות
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              התנתק
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -398,9 +451,9 @@ export default function AdminDashboard() {
                     {/* לוגו */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">לוגו</label>
-                      <div className="flex gap-4 mb-4">
-                        {editedProject.logoSrc && (
-                          <div className="bg-white p-4 rounded w-32 h-32 flex items-center justify-center">
+                      <div className="flex gap-4 items-center">
+                        {editedProject.logoSrc ? (
+                          <div className="rounded w-32 h-32 flex items-center justify-center border-2 border-white p-2">
                             <Image
                               src={editedProject.logoSrc}
                               alt="Logo"
@@ -409,29 +462,28 @@ export default function AdminDashboard() {
                               className="object-contain max-h-24"
                             />
                           </div>
+                        ) : (
+                          <div className="rounded w-32 h-32 flex items-center justify-center border-2 border-dashed border-gray-500">
+                            <ImageIcon className="w-8 h-8 text-gray-500" />
+                          </div>
                         )}
-                        <select
-                          value={editedProject.logoSrc}
-                          onChange={(e) =>
-                            setEditedProject({ ...editedProject, logoSrc: e.target.value })
-                          }
-                          className="flex-1 bg-gray-700 text-white px-4 py-2 rounded"
+                        <button
+                          type="button"
+                          onClick={() => setMediaModal('logo')}
+                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
                         >
-                          {logoFiles.map((file) => (
-                            <option key={file.path} value={file.path}>
-                              {file.name}
-                            </option>
-                          ))}
-                        </select>
+                          <ImageIcon className="w-4 h-4" />
+                          בחר לוגו
+                        </button>
                       </div>
                     </div>
 
                     {/* רקע דסקטופ */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">רקע דסקטופ</label>
-                      <div className="flex gap-4 mb-4">
-                        {editedProject.backgroundImage && (
-                          <div className="relative w-48 h-32 rounded overflow-hidden">
+                      <div className="flex gap-4 items-center">
+                        {editedProject.backgroundImage ? (
+                          <div className="relative w-48 h-32 rounded overflow-hidden border border-gray-600">
                             <Image
                               src={editedProject.backgroundImage}
                               alt="Background"
@@ -439,48 +491,28 @@ export default function AdminDashboard() {
                               className="object-cover"
                             />
                           </div>
+                        ) : (
+                          <div className="w-48 h-32 rounded border-2 border-dashed border-gray-500 flex items-center justify-center">
+                            <ImageIcon className="w-8 h-8 text-gray-500" />
+                          </div>
                         )}
-                        <div className="flex-1 flex flex-col gap-2">
-                          <select
-                            value={editedProject.backgroundImage || ''}
-                            onChange={(e) =>
-                              setEditedProject({
-                                ...editedProject,
-                                backgroundImage: e.target.value || undefined,
-                              })
-                            }
-                            className="bg-gray-700 text-white px-4 py-2 rounded"
-                          >
-                            <option value="">בחר רקע</option>
-                            {bgFiles.map((file) => (
-                              <option key={file.path} value={file.path}>
-                                {file.name}
-                              </option>
-                            ))}
-                          </select>
-                          <label className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-center cursor-pointer text-sm">
-                            {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleFileUpload(file, 'background');
-                              }}
-                              disabled={uploading?.type === 'background'}
-                            />
-                          </label>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setMediaModal('desktop')}
+                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
+                        >
+                          <ImageIcon className="w-4 h-4" />
+                          בחר תמונה
+                        </button>
                       </div>
                     </div>
 
                     {/* רקע מובייל */}
                     <div>
                       <label className="block text-sm font-semibold mb-2">רקע מובייל (אופציונלי)</label>
-                      <div className="flex gap-4 mb-4">
-                        {editedProject.backgroundImageMobile && (
-                          <div className="relative w-24 h-36 rounded overflow-hidden">
+                      <div className="flex gap-4 items-center">
+                        {editedProject.backgroundImageMobile ? (
+                          <div className="relative w-24 h-36 rounded overflow-hidden border border-gray-600">
                             <Image
                               src={editedProject.backgroundImageMobile}
                               alt="Mobile Background"
@@ -488,38 +520,29 @@ export default function AdminDashboard() {
                               className="object-cover"
                             />
                           </div>
+                        ) : (
+                          <div className="w-24 h-36 rounded border-2 border-dashed border-gray-500 flex items-center justify-center">
+                            <ImageIcon className="w-6 h-6 text-gray-500" />
+                          </div>
                         )}
-                        <div className="flex-1 flex flex-col gap-2">
-                          <select
-                            value={editedProject.backgroundImageMobile || ''}
-                            onChange={(e) =>
-                              setEditedProject({
-                                ...editedProject,
-                                backgroundImageMobile: e.target.value || undefined,
-                              })
-                            }
-                            className="bg-gray-700 text-white px-4 py-2 rounded"
+                        <div className="flex flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setMediaModal('mobile')}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded flex items-center gap-2"
                           >
-                            <option value="">אין רקע מובייל</option>
-                            {bgFiles.map((file) => (
-                              <option key={file.path} value={file.path}>
-                                {file.name}
-                              </option>
-                            ))}
-                          </select>
-                          <label className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-center cursor-pointer text-sm">
-                            {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע מובייל חדש'}
-                            <input
-                              type="file"
-                              accept="image/*"
-                              className="hidden"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) handleFileUpload(file, 'background');
-                              }}
-                              disabled={uploading?.type === 'background'}
-                            />
-                          </label>
+                            <ImageIcon className="w-4 h-4" />
+                            בחר תמונה
+                          </button>
+                          {editedProject.backgroundImageMobile && (
+                            <button
+                              type="button"
+                              onClick={() => setEditedProject({ ...editedProject, backgroundImageMobile: undefined })}
+                              className="bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded text-sm"
+                            >
+                              הסר תמונה
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -564,14 +587,53 @@ export default function AdminDashboard() {
                     <div>
                       <p className="text-gray-400 mb-2">לוגו:</p>
                       {selectedProject.logoSrc && (
-                        <Image
-                          src={selectedProject.logoSrc}
-                          alt="Logo"
-                          width={150}
-                          height={75}
-                          className="object-contain bg-white p-2 rounded"
-                        />
+                        <div className="inline-block border-2 border-white rounded p-2">
+                          <Image
+                            src={selectedProject.logoSrc}
+                            alt="Logo"
+                            width={150}
+                            height={75}
+                            className="object-contain"
+                          />
+                        </div>
                       )}
+                    </div>
+                    {/* תמונות רקע */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-gray-400 mb-2">תמונת מחשב:</p>
+                        {selectedProject.backgroundImage ? (
+                          <div className="relative w-full h-40 rounded overflow-hidden border border-gray-600">
+                            <Image
+                              src={selectedProject.backgroundImage}
+                              alt="Desktop Background"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-40 rounded border border-gray-600 border-dashed flex items-center justify-center text-gray-500">
+                            לא נבחרה תמונה
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-gray-400 mb-2">תמונת מובייל:</p>
+                        {selectedProject.backgroundImageMobile ? (
+                          <div className="relative w-24 h-40 rounded overflow-hidden border border-gray-600 mx-auto md:mx-0">
+                            <Image
+                              src={selectedProject.backgroundImageMobile}
+                              alt="Mobile Background"
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-24 h-40 rounded border border-gray-600 border-dashed flex items-center justify-center text-gray-500 text-xs text-center mx-auto md:mx-0">
+                            לא נבחרה תמונה
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <p className="text-gray-400 mb-2">קישור:</p>
@@ -595,6 +657,137 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      {/* מודל בחירת תמונה */}
+      {mediaModal && editedProject && (
+        <div 
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+          onClick={() => setMediaModal(null)}
+        >
+          <div 
+            className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* כותרת המודל */}
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <h3 className="text-xl font-bold">
+                {mediaModal === 'logo' && 'בחר לוגו'}
+                {mediaModal === 'desktop' && 'בחר תמונת מחשב'}
+                {mediaModal === 'mobile' && 'בחר תמונת מובייל'}
+              </h3>
+              <button
+                onClick={() => setMediaModal(null)}
+                className="p-2 hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* כפתור העלאה */}
+            <div className="p-4 border-b border-gray-700">
+              <label className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded cursor-pointer inline-flex items-center gap-2 transition-colors">
+                <Plus className="w-4 h-4" />
+                {uploading ? 'מעלה...' : 'העלה תמונה חדשה'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleFileUpload(file, mediaModal === 'logo' ? 'logo' : 'background');
+                    }
+                  }}
+                  disabled={!!uploading}
+                />
+              </label>
+            </div>
+
+            {/* גריד תמונות */}
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <div className={`grid gap-4 ${
+                mediaModal === 'logo' 
+                  ? 'grid-cols-3 sm:grid-cols-4 md:grid-cols-5' 
+                  : mediaModal === 'mobile'
+                    ? 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6'
+                    : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+              }`}>
+                {(mediaModal === 'logo' ? logoFiles : bgFiles).map((file) => {
+                  const isSelected = 
+                    (mediaModal === 'logo' && editedProject.logoSrc === file.path) ||
+                    (mediaModal === 'desktop' && editedProject.backgroundImage === file.path) ||
+                    (mediaModal === 'mobile' && editedProject.backgroundImageMobile === file.path);
+
+                  return (
+                    <div
+                      key={file.path}
+                      onClick={() => {
+                        if (mediaModal === 'logo') {
+                          setEditedProject({ ...editedProject, logoSrc: file.path });
+                        } else if (mediaModal === 'desktop') {
+                          setEditedProject({ ...editedProject, backgroundImage: file.path });
+                        } else if (mediaModal === 'mobile') {
+                          setEditedProject({ ...editedProject, backgroundImageMobile: file.path });
+                        }
+                        setMediaModal(null);
+                      }}
+                      className={`group relative cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 ${
+                        isSelected 
+                          ? 'ring-4 ring-green-500 ring-offset-2 ring-offset-gray-800' 
+                          : 'hover:ring-2 hover:ring-blue-400'
+                      } ${
+                        mediaModal === 'logo' 
+                          ? 'aspect-square border-2 border-white/50 p-2' 
+                          : mediaModal === 'mobile'
+                            ? 'aspect-[9/16]'
+                            : 'aspect-video'
+                      }`}
+                    >
+                      <Image
+                        src={file.path}
+                        alt={file.name}
+                        fill
+                        className={mediaModal === 'logo' ? 'object-contain' : 'object-cover'}
+                      />
+                      {isSelected && (
+                        <div className="absolute top-2 left-2 bg-green-500 rounded-full p-1">
+                          <Check className="w-4 h-4 text-white" />
+                        </div>
+                      )}
+                      {/* כפתור מחיקה */}
+                      <button
+                        onClick={(e) => handleDeleteImage(file.path, e)}
+                        disabled={deletingImage === file.path}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                        title="מחק תמונה"
+                      >
+                        {deletingImage === file.path ? (
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <Trash2 className="w-4 h-4 text-white" />
+                        )}
+                      </button>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <p className="text-xs text-white truncate">{file.name}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* הודעה אם אין תמונות */}
+              {((mediaModal === 'logo' && logoFiles.length === 0) ||
+                (mediaModal !== 'logo' && bgFiles.length === 0)) && (
+                <div className="text-center text-gray-400 py-12">
+                  <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <p>אין תמונות זמינות</p>
+                  <p className="text-sm">העלה תמונה חדשה להתחלה</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

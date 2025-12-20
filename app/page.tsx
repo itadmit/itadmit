@@ -8,6 +8,7 @@ import MoreProjectsSection from "@/components/MoreProjectsSection";
 import Preloader from "@/components/Preloader";
 import MenuPopup from "@/components/MenuPopup";
 import CircularTimer from "@/components/CircularTimer";
+import QuoteWizard from "@/components/QuoteWizard";
 
 // קריאת פרויקטים מה-API
 function useProjects() {
@@ -401,6 +402,9 @@ export default function Home() {
           onComplete={handleTimerComplete} 
         />
       )}
+
+      {/* Quote Wizard - יועץ הצעת מחיר חכם */}
+      {!showPreloader && <QuoteWizard />}
     </main>
     </>
   );
