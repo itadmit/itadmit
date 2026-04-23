@@ -38,12 +38,12 @@
   }
 }
 
-/* Custom styles from original site */
-html[lang="en"] .elementor-element.logo.elementor-widget.elementor-widget-image {
+/* תדמית — מותג itadmit */
+html[lang="en"] .itadmit-logo.itadmit-widget-image {
   text-align: left;
 }
 
-html[lang="en"] .elementor-button .elementor-align-icon-left {
+html[lang="en"] .itadmit-button .itadmit-align-icon-left {
   margin-left: 10px;
 }
 
@@ -244,7 +244,7 @@ html[lang="en"] .fas.fa-caret-left {
   }
 }
 
-.elementor-background-overlay {
+.itadmit-bg-overlay {
   background-color: #000000;
   opacity: 0.59;
   transition: background 0.3s, border-radius 0.3s, opacity 0.3s;

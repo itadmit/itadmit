@@ -9,6 +9,7 @@ import Preloader from "@/components/Preloader";
 import MenuPopup from "@/components/MenuPopup";
 import CircularTimer from "@/components/CircularTimer";
 import QuoteWizard from "@/components/QuoteWizard";
+import QuoteChatbotModal from "@/components/QuoteChatbotModal";
 
 // קריאת פרויקטים מה-API
 function useProjects() {
@@ -254,31 +255,76 @@ export default function Home() {
   const [showPreloader, setShowPreloader] = useState(true);
   const [activeSection, setActiveSection] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [quoteBotOpen, setQuoteBotOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [sitePageBgs, setSitePageBgs] = useState({
+    moreProjectsBackground: '/images/bg/bg-contact.jpg',
+    moreProjectsBackgroundMobile: '/images/bg/bg-contact.jpg',
+    contactBackground: '/images/bg/bg-contact-2.jpg',
+    contactBackgroundMobile: '/images/bg/bg-contact-2.jpg',
+  });
+
+  useEffect(() => {
+    fetch('/api/site-settings')
+      .then((r) => r.json())
+      .then(
+        (d: {
+          moreProjectsBackground?: string;
+          moreProjectsBackgroundMobile?: string;
+          contactBackground?: string;
+          contactBackgroundMobile?: string;
+        }) => {
+          setSitePageBgs((prev) => ({
+            moreProjectsBackground:
+              d.moreProjectsBackground ?? prev.moreProjectsBackground,
+            moreProjectsBackgroundMobile:
+              d.moreProjectsBackgroundMobile ??
+              prev.moreProjectsBackgroundMobile,
+            contactBackground: d.contactBackground ?? prev.contactBackground,
+            contactBackgroundMobile:
+              d.contactBackgroundMobile ?? prev.contactBackgroundMobile,
+          }));
+        }
+      )
+      .catch(() => {});
+  }, []);
   
   // Fallback לפרויקטים התחלתיים אם עדיין טוען או אין פרויקטים
   const displayProjects = (loading || projects.length === 0) ? initialProjects : projects;
 
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = document.querySelectorAll('section[id]');
-      const scrollPosition = window.scrollY + window.innerHeight / 2;
+    if (showPreloader) return;
+
+    const mainEl = containerRef.current;
+    if (!mainEl) return;
+
+    const updateActiveFromScroll = () => {
+      const sections = mainEl.querySelectorAll('section[id]');
+      const midpoint = mainEl.scrollTop + mainEl.clientHeight / 2;
 
       sections.forEach((section, index) => {
-        const sectionTop = (section as HTMLElement).offsetTop;
-        const sectionHeight = (section as HTMLElement).offsetHeight;
+        const el = section as HTMLElement;
+        const top =
+          el.getBoundingClientRect().top -
+          mainEl.getBoundingClientRect().top +
+          mainEl.scrollTop;
+        const bottom = top + el.offsetHeight;
 
-        if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+        if (midpoint >= top && midpoint < bottom) {
           setActiveSection(index);
         }
       });
     };
 
-    if (!showPreloader) {
-      window.addEventListener('scroll', handleScroll);
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, [showPreloader]);
+    updateActiveFromScroll();
+    mainEl.addEventListener('scroll', updateActiveFromScroll, { passive: true });
+    window.addEventListener('resize', updateActiveFromScroll);
+
+    return () => {
+      mainEl.removeEventListener('scroll', updateActiveFromScroll);
+      window.removeEventListener('resize', updateActiveFromScroll);
+    };
+  }, [showPreloader, displayProjects.length]);
 
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
@@ -391,8 +437,20 @@ export default function Home() {
         })}
       </div>
 
-      <MoreProjectsSection />
-      <ContactSection />
+      <MoreProjectsSection
+        backgroundSrc={sitePageBgs.moreProjectsBackground}
+        backgroundSrcMobile={sitePageBgs.moreProjectsBackgroundMobile}
+        onOpenQuoteBot={() => setQuoteBotOpen(true)}
+      />
+
+      <QuoteChatbotModal
+        open={quoteBotOpen}
+        onClose={() => setQuoteBotOpen(false)}
+      />
+      <ContactSection
+        backgroundSrc={sitePageBgs.contactBackground}
+        backgroundSrcMobile={sitePageBgs.contactBackgroundMobile}
+      />
       
       {/* Circular Timer - Bottom Right */}
       {!showPreloader && (

@@ -1,9 +1,33 @@
 'use client';
 
 import { Phone, Mail, Instagram, Facebook, MessageCircle, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useSectionParallax } from '@/hooks/useSectionParallax';
 
-export default function ContactSection() {
+const bgLayerStyle = {
+  backgroundSize: '100% auto' as const,
+  backgroundPosition: 'center top' as const,
+  backgroundRepeat: 'no-repeat' as const,
+  transformOrigin: 'center top' as const,
+};
+
+export default function ContactSection({
+  backgroundSrc = '/images/bg/bg-contact-2.jpg',
+  backgroundSrcMobile,
+}: {
+  backgroundSrc?: string;
+  backgroundSrcMobile?: string;
+}) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const desktopBgRef = useRef<HTMLDivElement>(null);
+  const mobileBgRef = useRef<HTMLDivElement>(null);
+  const mobileSrc = backgroundSrcMobile ?? backgroundSrc;
+
+  useSectionParallax(sectionRef, desktopBgRef, {
+    maxScale: 1,
+    mainFactor: 0.12,
+  }, mobileBgRef);
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,10 +42,39 @@ export default function ContactSection() {
   };
 
   return (
-    <section 
-      className="h-screen w-screen bg-black py-20 px-4 snap-start snap-always overflow-y-auto flex items-center justify-center m-0 p-0" 
+    <section
+      ref={sectionRef}
       id="contact"
+      className="relative h-screen w-screen snap-start snap-always overflow-y-auto m-0 p-0 text-white"
     >
+      <div
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-black"
+        aria-hidden
+      >
+        <div
+          ref={desktopBgRef}
+          className="absolute inset-0 hidden will-change-transform md:block"
+          style={{
+            ...bgLayerStyle,
+            backgroundImage: `url(${backgroundSrc})`,
+          }}
+        />
+        <div
+          ref={mobileBgRef}
+          className="absolute inset-0 block will-change-transform md:hidden"
+          style={{
+            ...bgLayerStyle,
+            backgroundImage: `url(${mobileSrc})`,
+          }}
+        />
+        <div
+          className="absolute inset-0 z-[1]"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.88)' }}
+          aria-hidden
+        />
+      </div>
+
+      <div className="relative z-10 flex min-h-full items-center justify-center py-20 px-4">
       <div className="container mx-auto max-w-5xl text-center">
         
         {/* Title */}
@@ -160,6 +213,7 @@ export default function ContactSection() {
         <div className="mt-12 text-white/60 text-sm border-t border-white/20 pt-8">
           <p>Info@itadmit.co.il | תדמית אינטראקטיב בניית אתרים וחנויות וירטואליות | 054-2284283 | רחוב פנחס ספיר 8 נס-ציונה.</p>
         </div>
+      </div>
       </div>
     </section>
   );

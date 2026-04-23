@@ -72,6 +72,15 @@ export default function CircularTimer({ duration = 4000, onComplete, resetKey }:
     };
   }, [isPaused, timeLeft, resetKey, onComplete]);
 
+  // גלילה עם גלגלת העכבר — השהיית הטיימר עד לחיצה להמשך
+  useEffect(() => {
+    const onWheel = () => {
+      setIsPaused(true);
+    };
+    window.addEventListener('wheel', onWheel, { passive: true });
+    return () => window.removeEventListener('wheel', onWheel);
+  }, []);
+
   const handleTogglePause = () => {
     setIsPaused(!isPaused);
   };

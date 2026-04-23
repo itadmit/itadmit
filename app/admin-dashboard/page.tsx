@@ -27,11 +27,11 @@ export default function AdminDashboard() {
 
   const handleDeleteImage = async (imagePath: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (!confirm('האם אתה בטוח שברצונך למחוק את התמונה לצמיתות?')) return;
 
     setDeletingImage(imagePath);
-    
+
     try {
       const res = await fetch('/api/images/delete', {
         method: 'DELETE',
@@ -42,7 +42,6 @@ export default function AdminDashboard() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        // רענון רשימת התמונות
         loadImages();
         alert('התמונה נמחקה בהצלחה!');
       } else {
@@ -55,6 +54,13 @@ export default function AdminDashboard() {
       setDeletingImage(null);
     }
   };
+
+  const [siteSettingsEdit, setSiteSettingsEdit] = useState({
+    moreProjectsBackground: '/images/bg/bg-contact.jpg',
+    moreProjectsBackgroundMobile: '/images/bg/bg-contact.jpg',
+    contactBackground: '/images/bg/bg-contact-2.jpg',
+    contactBackgroundMobile: '/images/bg/bg-contact-2.jpg',
+  });
 
   useEffect(() => {
     // בדיקת אימות
@@ -79,7 +85,10 @@ export default function AdminDashboard() {
       .then(data => {
         setProjects(data);
         if (data.length > 0) {
-          setSelectedProject(data[0]);
+          const first = data[0];
+          setSelectedProject(first);
+          setIsEditing(true);
+          setEditedProject({ ...first });
         }
         setLoading(false);
       })
@@ -90,6 +99,30 @@ export default function AdminDashboard() {
 
     // טעינת תמונות
     loadImages();
+
+    fetch('/api/site-settings')
+      .then((r) => r.json())
+      .then(
+        (data: {
+          moreProjectsBackground?: string;
+          moreProjectsBackgroundMobile?: string;
+          contactBackground?: string;
+          contactBackgroundMobile?: string;
+        }) => {
+          const mp =
+            data.moreProjectsBackground ?? '/images/bg/bg-contact.jpg';
+          const ct =
+            data.contactBackground ?? '/images/bg/bg-contact-2.jpg';
+          setSiteSettingsEdit({
+            moreProjectsBackground: mp,
+            moreProjectsBackgroundMobile:
+              data.moreProjectsBackgroundMobile ?? mp,
+            contactBackground: ct,
+            contactBackgroundMobile: data.contactBackgroundMobile ?? ct,
+          });
+        }
+      )
+      .catch(() => {});
   }, [authenticated]);
 
   const loadImages = () => {
@@ -142,6 +175,42 @@ export default function AdminDashboard() {
     }
   };
 
+  /** העלאת רקע לסקשני הבית — לא משנה את פרויקט העריכה */
+  const handleSiteBackgroundUpload = async (
+    file: File,
+    applyPath: (path: string) => void
+  ) => {
+    setUploading({ type: 'background', progress: 0 });
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'background');
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        loadImages();
+        applyPath(data.path);
+        alert(
+          `הקובץ ${data.fileName} הועלה ושויך לרקע. אל תשכח ללחוץ "שמור רקעים".`
+        );
+      } else {
+        alert('שגיאה בהעלאת הקובץ');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('שגיאה בהעלאת הקובץ');
+    } finally {
+      setUploading(null);
+    }
+  };
+
   const handleDuplicate = async (id: string) => {
     try {
       const res = await fetch('/api/projects/duplicate', {
@@ -154,7 +223,10 @@ export default function AdminDashboard() {
         // רענון רשימת הפרויקטים
         const updated = await fetch('/api/projects').then(r => r.json());
         setProjects(updated);
-        setSelectedProject(data.project);
+        const dup = data.project;
+        setSelectedProject(dup);
+        setIsEditing(true);
+        setEditedProject({ ...dup });
         alert('הפרויקט שוכפל בהצלחה!');
       }
     } catch (error) {
@@ -171,7 +243,15 @@ export default function AdminDashboard() {
         const updated = projects.filter(p => p.id !== id);
         setProjects(updated);
         if (selectedProject?.id === id) {
-          setSelectedProject(updated[0] || null);
+          const next = updated[0] || null;
+          setSelectedProject(next);
+          if (next) {
+            setIsEditing(true);
+            setEditedProject({ ...next });
+          } else {
+            setIsEditing(false);
+            setEditedProject(null);
+          }
         }
         alert('הפרויקט נמחק בהצלחה!');
       }
@@ -216,6 +296,20 @@ export default function AdminDashboard() {
   const handleLogout = async () => {
     await fetch('/api/auth/login', { method: 'DELETE' });
     router.push('/login');
+  };
+
+  const handleSaveSiteSettings = async () => {
+    try {
+      const res = await fetch('/api/site-settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(siteSettingsEdit),
+      });
+      if (res.ok) alert('הגדרות הרקע נשמרו');
+      else alert('שגיאה בשמירה');
+    } catch {
+      alert('שגיאה בשמירה');
+    }
   };
 
   const handleDragStart = (e: React.DragEvent, projectId: string) => {
@@ -285,8 +379,8 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen overflow-x-hidden bg-gray-900 text-white p-8" dir="rtl">
+      <div className="mx-auto max-w-7xl min-w-0">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">ניהול פרויקטים</h1>
           <div className="flex items-center gap-3">
@@ -314,11 +408,11 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-3">
           {/* רשימת פרויקטים */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">פרויקטים</h2>
+          <div className="min-w-0 rounded-lg bg-gray-800 p-6">
+            <div className="mb-4 flex items-center justify-between gap-2">
+              <h2 className="min-w-0 shrink text-2xl font-bold">פרויקטים</h2>
               <button
                 onClick={() => {
                   const newProject: ProjectData = {
@@ -333,13 +427,13 @@ export default function AdminDashboard() {
                   setIsEditing(true);
                   setEditedProject(newProject);
                 }}
-                className="bg-green-600 hover:bg-green-700 px-4 py-2 rounded flex items-center gap-2"
+                className="flex shrink-0 items-center gap-2 rounded bg-green-600 px-4 py-2 hover:bg-green-700"
               >
                 <Plus className="w-4 h-4" />
                 חדש
               </button>
             </div>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
+            <div className="max-h-[600px] space-y-2 overflow-y-auto overflow-x-hidden">
               {projects.length === 0 ? (
                 <div className="text-gray-400 text-center py-8">
                   אין פרויקטים. לחץ על &quot;חדש&quot; כדי להוסיף פרויקט.
@@ -353,7 +447,7 @@ export default function AdminDashboard() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, project.id)}
                   onDragEnd={handleDragEnd}
-                  className={`p-3 rounded cursor-pointer transition-colors ${
+                  className={`cursor-pointer rounded p-3 transition-colors ${
                     selectedProject?.id === project.id
                       ? 'bg-blue-600'
                       : 'bg-gray-700 hover:bg-gray-600'
@@ -362,19 +456,21 @@ export default function AdminDashboard() {
                   }`}
                   onClick={() => {
                     setSelectedProject(project);
-                    setIsEditing(false);
-                    setEditedProject(null);
+                    setIsEditing(true);
+                    setEditedProject({ ...project });
                   }}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 flex items-center gap-2">
-                      <span className="text-gray-500 text-xs cursor-move select-none">☰</span>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{project.title}</h3>
-                        <p className="text-sm text-gray-400 truncate">{project.description}</p>
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="shrink-0 cursor-move select-none text-xs text-gray-500">
+                        ☰
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="break-words font-semibold leading-tight">{project.title}</h3>
+                        <p className="truncate text-sm text-gray-400">{project.description}</p>
                       </div>
                     </div>
-                    <div className="flex gap-2 ml-2">
+                    <div className="flex shrink-0 gap-2">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -404,7 +500,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* עריכת פרויקט */}
-          <div className="lg:col-span-2 bg-gray-800 rounded-lg p-6">
+          <div className="min-w-0 rounded-lg bg-gray-800 p-6 lg:col-span-2">
             {selectedProject ? (
               <>
                 <div className="flex justify-between items-center mb-6">
@@ -655,6 +751,263 @@ export default function AdminDashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        <div className="bg-gray-800 rounded-lg p-6 mt-8 border border-gray-700">
+          <h2 className="text-xl font-bold mb-2">רקעים בעמוד הבית</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            סקשן &quot;עוד עבודות&quot; ויצירת קשר — דסקטופ ומובייל (מתחת ל־md). אפשר להעלות תמונה ישירות לכל רקע או לבחור מהרשימה. אחרי העלאה לחץ &quot;שמור רקעים&quot;.
+          </p>
+          <div className="grid gap-8 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                עוד עבודות — דסקטופ
+              </label>
+              <select
+                value={siteSettingsEdit.moreProjectsBackground}
+                onChange={(e) =>
+                  setSiteSettingsEdit((s) => ({
+                    ...s,
+                    moreProjectsBackground: e.target.value,
+                  }))
+                }
+                className="w-full rounded bg-gray-700 px-4 py-2 text-white"
+              >
+                {!bgFiles.some(
+                  (f) => f.path === siteSettingsEdit.moreProjectsBackground
+                ) && (
+                  <option value={siteSettingsEdit.moreProjectsBackground}>
+                    נתיב נוכחי: {siteSettingsEdit.moreProjectsBackground}
+                  </option>
+                )}
+                {bgFiles.map((file) => (
+                  <option key={`mp-${file.path}`} value={file.path}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+              <label className="mt-2 block w-full cursor-pointer rounded bg-blue-600 px-4 py-2 text-center text-sm hover:bg-blue-700">
+                {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading?.type === 'background'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleSiteBackgroundUpload(file, (path) =>
+                        setSiteSettingsEdit((s) => ({
+                          ...s,
+                          moreProjectsBackground: path,
+                        }))
+                      );
+                    }
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <div className="relative mt-3 h-28 w-full overflow-hidden rounded border border-gray-600 bg-black">
+                <Image
+                  src={siteSettingsEdit.moreProjectsBackground}
+                  alt=""
+                  fill
+                  className="object-cover object-top"
+                  unoptimized
+                  sizes="400px"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                עוד עבודות — מובייל
+              </label>
+              <select
+                value={siteSettingsEdit.moreProjectsBackgroundMobile}
+                onChange={(e) =>
+                  setSiteSettingsEdit((s) => ({
+                    ...s,
+                    moreProjectsBackgroundMobile: e.target.value,
+                  }))
+                }
+                className="w-full rounded bg-gray-700 px-4 py-2 text-white"
+              >
+                {!bgFiles.some(
+                  (f) =>
+                    f.path === siteSettingsEdit.moreProjectsBackgroundMobile
+                ) && (
+                  <option
+                    value={siteSettingsEdit.moreProjectsBackgroundMobile}
+                  >
+                    נתיב נוכחי:{' '}
+                    {siteSettingsEdit.moreProjectsBackgroundMobile}
+                  </option>
+                )}
+                {bgFiles.map((file) => (
+                  <option key={`mpm-${file.path}`} value={file.path}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+              <label className="mt-2 block w-full cursor-pointer rounded bg-blue-600 px-4 py-2 text-center text-sm hover:bg-blue-700">
+                {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading?.type === 'background'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleSiteBackgroundUpload(file, (path) =>
+                        setSiteSettingsEdit((s) => ({
+                          ...s,
+                          moreProjectsBackgroundMobile: path,
+                        }))
+                      );
+                    }
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <div className="relative mt-3 h-28 w-full overflow-hidden rounded border border-gray-600 bg-black">
+                <Image
+                  src={siteSettingsEdit.moreProjectsBackgroundMobile}
+                  alt=""
+                  fill
+                  className="object-cover object-top"
+                  unoptimized
+                  sizes="400px"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                יצירת קשר — דסקטופ
+              </label>
+              <select
+                value={siteSettingsEdit.contactBackground}
+                onChange={(e) =>
+                  setSiteSettingsEdit((s) => ({
+                    ...s,
+                    contactBackground: e.target.value,
+                  }))
+                }
+                className="w-full rounded bg-gray-700 px-4 py-2 text-white"
+              >
+                {!bgFiles.some(
+                  (f) => f.path === siteSettingsEdit.contactBackground
+                ) && (
+                  <option value={siteSettingsEdit.contactBackground}>
+                    נתיב נוכחי: {siteSettingsEdit.contactBackground}
+                  </option>
+                )}
+                {bgFiles.map((file) => (
+                  <option key={`ct-${file.path}`} value={file.path}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+              <label className="mt-2 block w-full cursor-pointer rounded bg-blue-600 px-4 py-2 text-center text-sm hover:bg-blue-700">
+                {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading?.type === 'background'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleSiteBackgroundUpload(file, (path) =>
+                        setSiteSettingsEdit((s) => ({
+                          ...s,
+                          contactBackground: path,
+                        }))
+                      );
+                    }
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <div className="relative mt-3 h-28 w-full overflow-hidden rounded border border-gray-600 bg-black">
+                <Image
+                  src={siteSettingsEdit.contactBackground}
+                  alt=""
+                  fill
+                  className="object-cover object-top"
+                  unoptimized
+                  sizes="400px"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-semibold">
+                יצירת קשר — מובייל
+              </label>
+              <select
+                value={siteSettingsEdit.contactBackgroundMobile}
+                onChange={(e) =>
+                  setSiteSettingsEdit((s) => ({
+                    ...s,
+                    contactBackgroundMobile: e.target.value,
+                  }))
+                }
+                className="w-full rounded bg-gray-700 px-4 py-2 text-white"
+              >
+                {!bgFiles.some(
+                  (f) => f.path === siteSettingsEdit.contactBackgroundMobile
+                ) && (
+                  <option value={siteSettingsEdit.contactBackgroundMobile}>
+                    נתיב נוכחי:{' '}
+                    {siteSettingsEdit.contactBackgroundMobile}
+                  </option>
+                )}
+                {bgFiles.map((file) => (
+                  <option key={`ctm-${file.path}`} value={file.path}>
+                    {file.name}
+                  </option>
+                ))}
+              </select>
+              <label className="mt-2 block w-full cursor-pointer rounded bg-blue-600 px-4 py-2 text-center text-sm hover:bg-blue-700">
+                {uploading?.type === 'background' ? 'מעלה...' : 'העלה רקע חדש'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading?.type === 'background'}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      handleSiteBackgroundUpload(file, (path) =>
+                        setSiteSettingsEdit((s) => ({
+                          ...s,
+                          contactBackgroundMobile: path,
+                        }))
+                      );
+                    }
+                    e.target.value = '';
+                  }}
+                />
+              </label>
+              <div className="relative mt-3 h-28 w-full overflow-hidden rounded border border-gray-600 bg-black">
+                <Image
+                  src={siteSettingsEdit.contactBackgroundMobile}
+                  alt=""
+                  fill
+                  className="object-cover object-top"
+                  unoptimized
+                  sizes="400px"
+                />
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleSaveSiteSettings}
+            className="mt-6 rounded bg-green-600 px-6 py-2 font-medium hover:bg-green-700"
+          >
+            שמור רקעים
+          </button>
         </div>
       </div>
 

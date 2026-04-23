@@ -32,7 +32,7 @@ export default function ProjectSection({ project, nextId }: { project: ProjectDa
         }}
       >
         {/* Dark Overlay - מוחשכת */}
-        <div className="absolute inset-0 bg-black/59 z-0 elementor-background-overlay" />
+        <div className="itadmit-bg-overlay absolute inset-0 z-0 bg-black/59" />
       </div>
       
       {/* Full Screen Background Image - Mobile */}
@@ -46,7 +46,7 @@ export default function ProjectSection({ project, nextId }: { project: ProjectDa
         }}
       >
         {/* Dark Overlay - מוחשכת */}
-        <div className="absolute inset-0 bg-black/59 z-0 elementor-background-overlay" />
+        <div className="itadmit-bg-overlay absolute inset-0 z-0 bg-black/59" />
       </div>
       
       {/* Content Container - על התמונה המוחשכת */}

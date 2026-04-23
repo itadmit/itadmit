@@ -55,6 +55,27 @@ function initDb(database: Database.Database) {
     // העמודה כבר קיימת, זה בסדר
   }
 
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS site_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    )
+  `);
+
+  const seedSetting = database.prepare(
+    `INSERT OR IGNORE INTO site_settings (key, value) VALUES (?, ?)`
+  );
+  seedSetting.run('more_projects_background', '/images/bg/bg-contact.jpg');
+  seedSetting.run(
+    'more_projects_background_mobile',
+    '/images/bg/bg-contact.jpg'
+  );
+  seedSetting.run('contact_background', '/images/bg/bg-contact-2.jpg');
+  seedSetting.run(
+    'contact_background_mobile',
+    '/images/bg/bg-contact-2.jpg'
+  );
+
   // אם הטבלה ריקה, נטען את הנתונים מה-JSON
   const count = database.prepare('SELECT COUNT(*) as count FROM projects').get() as { count: number };
   if (count.count === 0) {
