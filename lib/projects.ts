@@ -13,6 +13,7 @@ export interface ProjectData {
   isLast?: boolean;
   created_at?: string;
   updated_at?: string;
+  display_order?: number;
 }
 
 // פונקציות אלו נועדו לשימוש בצד השרת בלבד (API routes ו-build scripts)

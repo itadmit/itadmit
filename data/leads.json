@@ -1,0 +1,22 @@
+[
+  {
+    "id": "lead-1776934329100",
+    "name": "yogev avitan",
+    "phone": "0542284283",
+    "email": "yogev@itadmit.co.il",
+    "company": "",
+    "answers": {
+      "site-type": "ecommerce",
+      "ecommerce-type": "custom",
+      "products-count": "medium",
+      "features": [
+        "multilang",
+        "chat"
+      ],
+      "timeline": "urgent"
+    },
+    "status": "new",
+    "createdAt": "2026-04-23T08:52:09.100Z",
+    "notes": ""
+  }
+]

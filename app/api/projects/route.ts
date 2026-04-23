@@ -8,7 +8,11 @@ import { cookies } from 'next/headers';
 export async function GET() {
   try {
     const projects = getProjects();
-    return NextResponse.json(projects);
+    return NextResponse.json(projects, {
+      headers: {
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
   }

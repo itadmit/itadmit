@@ -6,7 +6,11 @@ import { getSiteSettings, updateSiteSettings, type SiteSettings } from '@/lib/si
 export async function GET() {
   try {
     const settings = getSiteSettings();
-    return NextResponse.json(settings);
+    return NextResponse.json(settings, {
+      headers: {
+        'Cache-Control': 'no-store, must-revalidate',
+      },
+    });
   } catch (error) {
     console.error('site-settings GET:', error);
     return NextResponse.json({ error: 'Failed to load settings' }, { status: 500 });

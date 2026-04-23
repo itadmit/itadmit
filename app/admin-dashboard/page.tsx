@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectData } from '@/components/ProjectSection';
@@ -9,6 +9,28 @@ import Link from 'next/link';
 
 // טיפוס למודל בחירת תמונה
 type MediaModalType = 'logo' | 'desktop' | 'mobile' | null;
+
+type ImageFileEntry = { name: string; path: string };
+
+/** למודל רקע דסקטופ/מובייל — מאחד לוגואים ורקעים כדי שכל הנכסים יהיו זמינים לבחירה */
+function mergeLogoAndBackgroundFiles(
+  logos: ImageFileEntry[],
+  backgrounds: ImageFileEntry[]
+): ImageFileEntry[] {
+  const seen = new Set<string>();
+  const out: ImageFileEntry[] = [];
+  for (const f of [...logos, ...backgrounds]) {
+    if (seen.has(f.path)) continue;
+    seen.add(f.path);
+    out.push(f);
+  }
+  out.sort((a, b) => a.name.localeCompare(b.name, 'he'));
+  return out;
+}
+
+function imageSourceKind(path: string): 'logo' | 'bg' {
+  return path.includes('/logos/') ? 'logo' : 'bg';
+}
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -134,6 +156,13 @@ export default function AdminDashboard() {
       })
       .catch(err => console.error('Error loading images:', err));
   };
+
+  /** רשימת הקבצים במודל בחירת תמונה — לדסקטופ/מובייל מאוחדים לוגואים + רקעים */
+  const mediaModalPickerFiles = useMemo(() => {
+    if (!mediaModal) return [];
+    if (mediaModal === 'logo') return logoFiles;
+    return mergeLogoAndBackgroundFiles(logoFiles, bgFiles);
+  }, [mediaModal, logoFiles, bgFiles]);
 
   const handleFileUpload = async (file: File, type: 'logo' | 'background') => {
     setUploading({ type, progress: 0 });
@@ -1022,12 +1051,20 @@ export default function AdminDashboard() {
             onClick={(e) => e.stopPropagation()}
           >
             {/* כותרת המודל */}
-            <div className="flex justify-between items-center p-4 border-b border-gray-700">
-              <h3 className="text-xl font-bold">
-                {mediaModal === 'logo' && 'בחר לוגו'}
-                {mediaModal === 'desktop' && 'בחר תמונת מחשב'}
-                {mediaModal === 'mobile' && 'בחר תמונת מובייל'}
-              </h3>
+            <div className="flex items-start justify-between gap-4 border-b border-gray-700 p-4">
+              <div className="min-w-0">
+                <h3 className="text-xl font-bold">
+                  {mediaModal === 'logo' && 'בחר לוגו'}
+                  {mediaModal === 'desktop' && 'בחר תמונת רקע — מחשב'}
+                  {mediaModal === 'mobile' && 'בחר תמונת רקע — מובייל'}
+                </h3>
+                {(mediaModal === 'desktop' || mediaModal === 'mobile') && (
+                  <p className="mt-1 text-sm text-gray-400">
+                    מוצגות כל התמונות מתיקיות הלוגואים והרקעים — אפשר לבחור כל קובץ גם לדסקטופ וגם
+                    למובייל.
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => setMediaModal(null)}
                 className="p-2 hover:bg-gray-700 rounded-full transition-colors"
@@ -1065,7 +1102,7 @@ export default function AdminDashboard() {
                     ? 'grid-cols-4 sm:grid-cols-5 md:grid-cols-6'
                     : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
               }`}>
-                {(mediaModal === 'logo' ? logoFiles : bgFiles).map((file) => {
+                {mediaModalPickerFiles.map((file) => {
                   const isSelected = 
                     (mediaModal === 'logo' && editedProject.logoSrc === file.path) ||
                     (mediaModal === 'desktop' && editedProject.backgroundImage === file.path) ||
@@ -1121,6 +1158,13 @@ export default function AdminDashboard() {
                         )}
                       </button>
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        {(mediaModal === 'desktop' || mediaModal === 'mobile') && (
+                          <p className="mb-1 text-[10px] font-medium text-emerald-200/95">
+                            {imageSourceKind(file.path) === 'logo'
+                              ? 'לוגו'
+                              : 'רקע'}
+                          </p>
+                        )}
                         <p className="text-xs text-white truncate">{file.name}</p>
                       </div>
                     </div>
@@ -1129,8 +1173,7 @@ export default function AdminDashboard() {
               </div>
 
               {/* הודעה אם אין תמונות */}
-              {((mediaModal === 'logo' && logoFiles.length === 0) ||
-                (mediaModal !== 'logo' && bgFiles.length === 0)) && (
+              {mediaModalPickerFiles.length === 0 && (
                 <div className="text-center text-gray-400 py-12">
                   <ImageIcon className="w-16 h-16 mx-auto mb-4 opacity-50" />
                   <p>אין תמונות זמינות</p>

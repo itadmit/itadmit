@@ -7,15 +7,33 @@ export function getProjects(): ProjectData[] {
   const db = getDb();
   
   if (db) {
-    // SQLite זמין (לוקאלי) - ממוין לפי display_order ואז created_at
-    const projects = db.prepare('SELECT * FROM projects ORDER BY display_order ASC, created_at DESC').all() as ProjectData[];
+    const projects = db
+      .prepare(
+        `SELECT * FROM projects ORDER BY COALESCE(display_order, 999999) ASC, id ASC`
+      )
+      .all() as ProjectData[];
     return projects;
-  } else {
-    // Vercel production - קורא מ-JSON
-    const projects = getProjectsJson();
-    // מיון לפי display_order אם קיים
-    return projects.sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0));
   }
+
+  const projects = getProjectsJson();
+  return [...projects].sort((a, b) => {
+    const oa = a.display_order ?? 999999;
+    const ob = b.display_order ?? 999999;
+    if (oa !== ob) return oa - ob;
+    return String(a.id).localeCompare(String(b.id));
+  });
+}
+
+/** לאחר כל מוטציה ב-SQLite — לשמר גם את projects.json (כדי שלא ייפרד מהמצב הריצה ובבילד) */
+function syncJsonAfterSqliteWrite(): void {
+  const db = getDb();
+  if (!db) return;
+  const rows = db
+    .prepare(
+      `SELECT * FROM projects ORDER BY COALESCE(display_order, 999999) ASC, id ASC`
+    )
+    .all() as ProjectData[];
+  saveProjects(rows);
 }
 
 // שמירת פרויקטים
@@ -26,10 +44,10 @@ export function saveProjectsToDb(projects: ProjectData[]): void {
     // SQLite זמין (לוקאלי)
     const insert = db.prepare(`
       INSERT OR REPLACE INTO projects 
-      (id, title, description, logoSrc, logoWidth, logoHeight, siteUrl, whatsappText, backgroundImage, backgroundImageMobile, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      (id, title, description, logoSrc, logoWidth, logoHeight, siteUrl, whatsappText, backgroundImage, backgroundImageMobile, display_order, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
-    
+
     const transaction = db.transaction((projects: ProjectData[]) => {
       for (const project of projects) {
         insert.run(
@@ -42,12 +60,14 @@ export function saveProjectsToDb(projects: ProjectData[]): void {
           project.siteUrl,
           project.whatsappText || null,
           project.backgroundImage || null,
-          project.backgroundImageMobile || null
+          project.backgroundImageMobile || null,
+          project.display_order ?? null
         );
       }
     });
     
     transaction(projects);
+    syncJsonAfterSqliteWrite();
   } else {
     // Vercel production - שומר ל-JSON
     saveProjects(projects);
@@ -88,6 +108,7 @@ export function updateProject(id: string, updatedProject: Partial<ProjectData>):
         merged.backgroundImageMobile || null,
         id
       );
+      syncJsonAfterSqliteWrite();
     }
   } else {
     // JSON fallback
@@ -107,6 +128,7 @@ export function deleteProject(id: string): void {
   if (db) {
     // SQLite
     db.prepare('DELETE FROM projects WHERE id = ?').run(id);
+    syncJsonAfterSqliteWrite();
   } else {
     // JSON fallback
     const projects = getProjects();
@@ -146,6 +168,7 @@ export function updateProjectsOrder(projectIds: string[]): void {
     });
     
     transaction(projectIds);
+    syncJsonAfterSqliteWrite();
   } else {
     // Vercel production - עדכון ב-JSON
     const projects = getProjects();

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Send, ChevronRight, ChevronLeft, Sparkles, MessageCircle } from 'lucide-react';
+import { X, Send, ChevronRight, ChevronLeft, Sparkles, MessageCircle, Coins, PhoneOff, Timer, PartyPopper, Rocket } from 'lucide-react';
 import { Question, Lead, defaultQuestions, getFirstQuestion, getNextQuestion } from '@/lib/quote-wizard';
 
 interface QuoteWizardProps {
@@ -193,8 +193,9 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
               animation: 'slideIn 0.5s ease-out',
             }}
           >
-            <div className="text-sm font-medium">
-              💰 רוצים לדעת כמה עולה? בלי טלפונים!
+            <div className="flex items-start gap-2 text-sm font-medium">
+              <Coins className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+              <span>רוצים לדעת כמה עולה? בלי טלפונים!</span>
             </div>
             <div className="absolute bottom-0 left-6 transform translate-y-1/2 rotate-45 w-3 h-3 bg-white"></div>
           </div>
@@ -251,14 +252,16 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
                   <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center">
                     <MessageCircle className="w-10 h-10 text-white" />
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-3">
-                    2025, כבר לא מדברים בטלפון 📵
+                  <h2 className="flex items-center justify-center gap-2 text-2xl font-bold text-white mb-3">
+                    <PhoneOff className="h-7 w-7 shrink-0 text-emerald-400" aria-hidden />
+                    <span>2025, כבר לא מדברים בטלפון</span>
                   </h2>
                   <p className="text-gray-400 mb-2 max-w-sm mx-auto">
                     רוצים לדעת כמה עולה? כמה שאלות קצרות ויש לכם הצעת מחיר.
                   </p>
-                  <p className="text-emerald-400 text-sm mb-8">
-                    ⏱️ זמן ממוצע: 30 שניות
+                  <p className="flex items-center justify-center gap-2 text-emerald-400 text-sm mb-8">
+                    <Timer className="h-4 w-4 shrink-0" aria-hidden />
+                    <span>זמן ממוצע: 30 שניות</span>
                   </p>
                   <button
                     onClick={startQuestions}
@@ -369,8 +372,9 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
               {/* טופס פרטים */}
               {step === 'contact' && (
                 <div className="py-4 animate-fade-in">
-                  <h2 className="text-xl font-bold text-white mb-2 text-center">
-                    יופי! עוד שנייה וסיימנו 🎉
+                  <h2 className="flex items-center justify-center gap-2 text-xl font-bold text-white mb-2">
+                    <PartyPopper className="h-6 w-6 shrink-0 text-emerald-400" aria-hidden />
+                    <span>יופי! עוד שנייה וסיימנו</span>
                   </h2>
                   <p className="text-gray-400 text-center mb-6">
                     לאן לשלוח את הצעת המחיר?
@@ -440,8 +444,9 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-3">
-                    זהו, סיימנו! 🚀
+                  <h2 className="flex items-center justify-center gap-2 text-2xl font-bold text-white mb-3">
+                    <Rocket className="h-7 w-7 shrink-0 text-emerald-400" aria-hidden />
+                    <span>זהו, סיימנו!</span>
                   </h2>
                   <p className="text-gray-400 mb-8 max-w-sm mx-auto">
                     הצעת מחיר בדרך אליכם. נחזור אליכם ממש בקרוב!

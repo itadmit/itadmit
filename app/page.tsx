@@ -17,7 +17,7 @@ function useProjects() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/projects')
+    fetch('/api/projects', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         setProjects(data);
@@ -265,7 +265,7 @@ export default function Home() {
   });
 
   useEffect(() => {
-    fetch('/api/site-settings')
+    fetch('/api/site-settings', { cache: 'no-store' })
       .then((r) => r.json())
       .then(
         (d: {
