@@ -953,34 +953,45 @@ function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
       className={`flex ${isUser ? 'justify-start' : 'justify-end'} ${grouped ? 'mt-1' : 'mt-2.5'}`}
     >
       <div
-        className={`relative max-w-[82%] px-3 pt-2 pb-[22px] text-[14.5px] leading-[1.4] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
+        className={`relative max-w-[82%] px-[9px] py-[6px] text-[14.5px] leading-[1.35] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
           isUser
-            ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
-            : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
+            ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
+            : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
         }`}
       >
         {!grouped && (
           <span
             className={`absolute bottom-0 h-3 w-3 ${
-              isUser ? 'right-[-6px]' : 'left-[-6px]'
+              isUser ? 'left-[-6px]' : 'right-[-6px]'
             }`}
             aria-hidden
           >
             <svg viewBox="0 0 12 12" className="h-3 w-3">
               {isUser ? (
-                <path d="M0 0 L12 0 L12 12 Z" fill="#d9fdd3" />
+                <path d="M12 0 L12 12 L0 12 Z" fill="#d9fdd3" />
               ) : (
-                <path d="M0 0 L12 0 L0 12 Z" fill="#ffffff" />
+                <path d="M0 0 L0 12 L12 12 Z" fill="#ffffff" />
               )}
             </svg>
           </span>
         )}
-        <span className="block whitespace-pre-wrap break-words text-right">
+        <span
+          className="block break-words text-right"
+          style={{ whiteSpace: 'pre-wrap' }}
+        >
           {text}
-        </span>
-        <span className="pointer-events-none absolute bottom-[4px] left-2.5 flex items-center gap-1 text-[10.5px] leading-none text-[#667781]">
-          <span>{formatTime(ts)}</span>
-          {isUser && <StatusTicks status={status} />}
+          <span
+            className="inline-flex select-none items-center gap-1 whitespace-nowrap text-[10.5px] leading-none text-[#667781]"
+            style={{
+              float: 'left',
+              marginInlineStart: 8,
+              marginTop: 4,
+              transform: 'translateY(4px)',
+            }}
+          >
+            <span>{formatTime(ts)}</span>
+            {isUser && <StatusTicks status={status} />}
+          </span>
         </span>
       </div>
     </div>
@@ -998,13 +1009,13 @@ function StatusTicks({ status }: { status?: MsgStatus }) {
 function TypingBubble() {
   return (
     <div className="mt-1.5 flex justify-end">
-      <div className="relative rounded-2xl rounded-bl-sm bg-white px-3 py-2.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]">
+      <div className="relative rounded-2xl rounded-br-sm bg-white px-3 py-2.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]">
         <span
-          className="absolute bottom-0 left-[-6px] h-3 w-3"
+          className="absolute bottom-0 right-[-6px] h-3 w-3"
           aria-hidden
         >
           <svg viewBox="0 0 12 12" className="h-3 w-3">
-            <path d="M0 0 L12 0 L0 12 Z" fill="#ffffff" />
+            <path d="M0 0 L0 12 L12 12 Z" fill="#ffffff" />
           </svg>
         </span>
         <span className="flex items-center gap-1" aria-hidden>

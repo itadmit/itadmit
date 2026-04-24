@@ -2,14 +2,42 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Trash2, Phone, Mail, Building, Calendar, MessageSquare, Eye, X, CheckCircle, Clock, Send, XCircle } from 'lucide-react';
+import { Trash2, Phone, Mail, Building, Calendar, MessageSquare, Eye, X, CheckCircle, Clock, Send } from 'lucide-react';
 import { Lead } from '@/lib/quote-wizard';
+import AdminShell from '@/components/admin/AdminShell';
 
-const statusLabels: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  new: { label: 'חדש', color: 'bg-blue-500', icon: <Clock className="w-4 h-4" /> },
-  contacted: { label: 'נוצר קשר', color: 'bg-yellow-500', icon: <Phone className="w-4 h-4" /> },
-  quoted: { label: 'נשלחה הצעה', color: 'bg-purple-500', icon: <Send className="w-4 h-4" /> },
-  closed: { label: 'נסגר', color: 'bg-green-500', icon: <CheckCircle className="w-4 h-4" /> },
+const statusLabels: Record<
+  string,
+  { label: string; color: string; bg: string; ring: string; icon: React.ReactNode }
+> = {
+  new: {
+    label: 'חדש',
+    color: 'text-sky-300',
+    bg: 'bg-sky-500/15',
+    ring: 'ring-sky-400/30',
+    icon: <Clock className="h-3.5 w-3.5" />,
+  },
+  contacted: {
+    label: 'נוצר קשר',
+    color: 'text-amber-300',
+    bg: 'bg-amber-500/15',
+    ring: 'ring-amber-400/30',
+    icon: <Phone className="h-3.5 w-3.5" />,
+  },
+  quoted: {
+    label: 'נשלחה הצעה',
+    color: 'text-violet-300',
+    bg: 'bg-violet-500/15',
+    ring: 'ring-violet-400/30',
+    icon: <Send className="h-3.5 w-3.5" />,
+  },
+  closed: {
+    label: 'נסגר',
+    color: 'text-emerald-300',
+    bg: 'bg-emerald-500/15',
+    ring: 'ring-emerald-400/30',
+    icon: <CheckCircle className="h-3.5 w-3.5" />,
+  },
 };
 
 export default function LeadsPage() {
@@ -112,192 +140,211 @@ export default function LeadsPage() {
   };
 
   if (!authenticated || loading) {
-    return <div className="h-screen flex items-center justify-center text-white bg-gray-900">טוען...</div>;
+    return (
+      <AdminShell title="לידים">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-white/60">
+          טוען...
+        </div>
+      </AdminShell>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white p-8" dir="rtl">
-      <div className="max-w-7xl mx-auto">
-        {/* כותרת */}
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => router.push('/admin-dashboard')}
-            className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <ArrowRight className="w-6 h-6" />
-          </button>
-          <h1 className="text-3xl font-bold">ניהול לידים</h1>
-          <span className="bg-blue-600 px-3 py-1 rounded-full text-sm">
-            {leads.length} לידים
-          </span>
-        </div>
+  const counters = {
+    total: leads.length,
+    new: leads.filter((l) => l.status === 'new').length,
+    open: leads.filter((l) => l.status !== 'closed').length,
+  };
 
-        {leads.length === 0 ? (
-          <div className="text-center py-20 text-gray-400">
-            <MessageSquare className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="text-xl">אין לידים עדיין</p>
-            <p className="text-sm">לידים חדשים יופיעו כאן כשלקוחות ישלימו את השאלון</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* רשימת לידים */}
-            <div className="lg:col-span-2 space-y-4">
-              {leads.map(lead => {
-                const statusInfo = statusLabels[lead.status];
-                return (
-                  <div
-                    key={lead.id}
-                    onClick={() => setSelectedLead(lead)}
-                    className={`bg-gray-800 rounded-xl p-5 cursor-pointer transition-all hover:bg-gray-750 border-2 ${
-                      selectedLead?.id === lead.id ? 'border-blue-500' : 'border-transparent'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-bold">{lead.name}</h3>
-                          <span className={`${statusInfo.color} px-2 py-0.5 rounded-full text-xs flex items-center gap-1`}>
-                            {statusInfo.icon}
-                            {statusInfo.label}
-                          </span>
-                        </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-gray-400">
-                          <span className="flex items-center gap-1">
-                            <Phone className="w-4 h-4" />
-                            {lead.phone}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-4 h-4" />
-                            {lead.email}
-                          </span>
-                          {lead.company && (
-                            <span className="flex items-center gap-1">
-                              <Building className="w-4 h-4" />
-                              {lead.company}
-                            </span>
-                          )}
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            {formatDate(lead.createdAt)}
-                          </span>
-                        </div>
+  return (
+    <AdminShell
+      title="לידים"
+      subtitle={`${counters.total} לידים • ${counters.new} חדשים • ${counters.open} פתוחים`}
+    >
+      {leads.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.03] p-16 text-center">
+          <MessageSquare className="mb-4 h-12 w-12 text-white/20" />
+          <p className="text-lg font-semibold text-white/85">אין לידים עדיין</p>
+          <p className="mt-1 text-sm text-white/50">
+            לידים חדשים יופיעו כאן ברגע שלקוחות ישלימו את שאלון הצ׳אט.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="space-y-3 lg:col-span-2">
+            {leads.map((lead) => {
+              const statusInfo = statusLabels[lead.status];
+              const active = selectedLead?.id === lead.id;
+              return (
+                <div
+                  key={lead.id}
+                  onClick={() => setSelectedLead(lead)}
+                  className={`group cursor-pointer rounded-2xl border bg-white/[0.035] p-4 transition ${
+                    active
+                      ? 'border-emerald-400/50 bg-white/[0.06] shadow-[0_4px_24px_-8px_rgba(16,185,129,0.35)]'
+                      : 'border-white/10 hover:border-white/20 hover:bg-white/[0.06]'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 className="text-[15px] font-semibold text-white">
+                          {lead.name}
+                        </h3>
+                        <span
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1 ${statusInfo.bg} ${statusInfo.color} ${statusInfo.ring}`}
+                        >
+                          {statusInfo.icon}
+                          {statusInfo.label}
+                        </span>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedLead(lead);
-                          }}
-                          className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                          title="צפה"
-                        >
-                          <Eye className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(lead.id);
-                          }}
-                          className="p-2 hover:bg-red-600 rounded-lg transition-colors"
-                          title="מחק"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[12.5px] text-white/60">
+                        <span className="inline-flex items-center gap-1">
+                          <Phone className="h-3.5 w-3.5" />
+                          {lead.phone}
+                        </span>
+                        <span className="inline-flex items-center gap-1">
+                          <Mail className="h-3.5 w-3.5" />
+                          {lead.email}
+                        </span>
+                        {lead.company && (
+                          <span className="inline-flex items-center gap-1">
+                            <Building className="h-3.5 w-3.5" />
+                            {lead.company}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {formatDate(lead.createdAt)}
+                        </span>
                       </div>
                     </div>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedLead(lead);
+                        }}
+                        className="rounded-lg p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+                        title="צפה"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(lead.id);
+                        }}
+                        className="rounded-lg p-2 text-white/70 transition hover:bg-red-500/15 hover:text-red-300"
+                        title="מחק"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
+          </div>
 
-            {/* פרטי ליד נבחר */}
-            <div className="bg-gray-800 rounded-xl p-6 h-fit sticky top-8">
-              {selectedLead ? (
-                <>
-                  <div className="flex justify-between items-start mb-6">
+          <div className="sticky top-24 h-fit rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+            {selectedLead ? (
+              <>
+                <div className="mb-5 flex items-start justify-between gap-2">
+                  <div>
                     <h2 className="text-xl font-bold">{selectedLead.name}</h2>
-                    <button
-                      onClick={() => setSelectedLead(null)}
-                      className="p-1 hover:bg-gray-700 rounded"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
+                    <p className="mt-0.5 text-xs text-white/50">
+                      נוצר {formatDate(selectedLead.createdAt)}
+                    </p>
                   </div>
+                  <button
+                    onClick={() => setSelectedLead(null)}
+                    className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
 
-                  {/* סטטוס */}
-                  <div className="mb-6">
-                    <label className="block text-sm text-gray-400 mb-2">סטטוס</label>
-                    <div className="flex flex-wrap gap-2">
-                      {Object.entries(statusLabels).map(([key, info]) => (
+                <div className="mb-5">
+                  <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                    סטטוס
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {Object.entries(statusLabels).map(([key, info]) => {
+                      const isActive = selectedLead.status === key;
+                      return (
                         <button
                           key={key}
                           onClick={() => handleStatusChange(selectedLead.id, key)}
-                          className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-1 transition-colors ${
-                            selectedLead.status === key
-                              ? info.color
-                              : 'bg-gray-700 hover:bg-gray-600'
+                          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-medium ring-1 transition ${
+                            isActive
+                              ? `${info.bg} ${info.color} ${info.ring}`
+                              : 'bg-white/[0.04] text-white/60 ring-white/10 hover:bg-white/10'
                           }`}
                         >
                           {info.icon}
                           {info.label}
                         </button>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  {/* פרטי קשר */}
-                  <div className="space-y-3 mb-6">
-                    <a
-                      href={`tel:${selectedLead.phone}`}
-                      className="flex items-center gap-2 text-blue-400 hover:underline"
-                    >
-                      <Phone className="w-4 h-4" />
-                      {selectedLead.phone}
-                    </a>
-                    <a
-                      href={`mailto:${selectedLead.email}`}
-                      className="flex items-center gap-2 text-blue-400 hover:underline"
-                    >
-                      <Mail className="w-4 h-4" />
-                      {selectedLead.email}
-                    </a>
-                    {selectedLead.company && (
-                      <div className="flex items-center gap-2 text-gray-300">
-                        <Building className="w-4 h-4" />
-                        {selectedLead.company}
-                      </div>
+                <div className="mb-5 space-y-2">
+                  <a
+                    href={`tel:${selectedLead.phone}`}
+                    className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-[13.5px] text-emerald-300 hover:bg-white/[0.08]"
+                  >
+                    <Phone className="h-4 w-4" />
+                    {selectedLead.phone}
+                  </a>
+                  <a
+                    href={`mailto:${selectedLead.email}`}
+                    className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-[13.5px] text-sky-300 hover:bg-white/[0.08]"
+                  >
+                    <Mail className="h-4 w-4" />
+                    {selectedLead.email}
+                  </a>
+                  {selectedLead.company && (
+                    <div className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-[13.5px] text-white/80">
+                      <Building className="h-4 w-4" />
+                      {selectedLead.company}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                    תשובות לשאלון
+                  </label>
+                  <div className="space-y-1.5">
+                    {Object.entries(selectedLead.answers).map(
+                      ([questionId, answer]) => (
+                        <div
+                          key={questionId}
+                          className="rounded-lg border border-white/5 bg-white/[0.04] p-2.5"
+                        >
+                          <div className="mb-0.5 text-[10.5px] uppercase tracking-wide text-white/40">
+                            {questionId}
+                          </div>
+                          <div className="text-[13px] text-white/90">
+                            {getAnswerLabel(questionId, answer)}
+                          </div>
+                        </div>
+                      )
                     )}
                   </div>
-
-                  {/* תשובות */}
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-3">תשובות לשאלון</label>
-                    <div className="space-y-2">
-                      {Object.entries(selectedLead.answers).map(([questionId, answer]) => (
-                        <div key={questionId} className="bg-gray-700/50 rounded-lg p-3">
-                          <div className="text-xs text-gray-400 mb-1">{questionId}</div>
-                          <div className="text-sm">{getAnswerLabel(questionId, answer)}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* תאריך */}
-                  <div className="mt-6 pt-4 border-t border-gray-700 text-sm text-gray-400">
-                    נוצר: {formatDate(selectedLead.createdAt)}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-12 text-gray-400">
-                  <Eye className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>בחר ליד לצפייה בפרטים</p>
                 </div>
-              )}
-            </div>
+              </>
+            ) : (
+              <div className="py-10 text-center text-white/50">
+                <Eye className="mx-auto mb-3 h-10 w-10 text-white/20" />
+                <p>בחרו ליד לצפייה בפרטים</p>
+              </div>
+            )}
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+    </AdminShell>
   );
 }
 

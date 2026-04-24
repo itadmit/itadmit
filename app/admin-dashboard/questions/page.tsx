@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Plus, Trash2, Save, GripVertical, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Question, QuestionOption } from '@/lib/quote-wizard';
+import AdminShell from '@/components/admin/AdminShell';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -140,68 +141,64 @@ export default function QuestionsPage() {
   };
 
   if (!authenticated || loading) {
-    return <div className="h-screen flex items-center justify-center text-white bg-gray-900">טוען...</div>;
+    return (
+      <AdminShell title="שאלות הצ׳אט">
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-10 text-center text-white/60">
+          טוען...
+        </div>
+      </AdminShell>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-8" dir="rtl">
-      <div className="max-w-4xl mx-auto">
-        {/* כותרת */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/admin-dashboard')}
-              className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
-            >
-              <ArrowRight className="w-6 h-6" />
-            </button>
-            <h1 className="text-3xl font-bold">ניהול שאלות</h1>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleReset}
-              className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded flex items-center gap-2 transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-              איפוס
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-green-600 hover:bg-green-700 disabled:opacity-50 px-4 py-2 rounded flex items-center gap-2 transition-colors"
-            >
-              <Save className="w-4 h-4" />
-              {saving ? 'שומר...' : 'שמור שינויים'}
-            </button>
-          </div>
-        </div>
-
-        {/* רשימת שאלות */}
+    <AdminShell
+      title="שאלות הצ׳אט"
+      subtitle={`${questions.length} שאלות • נשמרות בבת אחת`}
+      wide={false}
+      actions={
+        <>
+          <button
+            onClick={handleReset}
+            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-sm text-white/85 transition hover:border-white/20 hover:bg-white/10"
+          >
+            <RotateCcw className="h-4 w-4" />
+            איפוס לברירת מחדל
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_18px_-4px_rgba(16,185,129,0.55)] transition hover:bg-emerald-400 disabled:opacity-50"
+          >
+            <Save className="h-4 w-4" />
+            {saving ? 'שומר...' : 'שמור שינויים'}
+          </button>
+        </>
+      }
+    >
         <div className="space-y-4">
           {questions.map((question, index) => (
             <div
               key={question.id}
-              className="bg-gray-800 rounded-xl overflow-hidden"
+              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.035]"
             >
-              {/* כותרת השאלה */}
               <div
-                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-750"
+                className="flex cursor-pointer items-center gap-3 p-4 transition hover:bg-white/[0.05]"
                 onClick={() => setExpandedQuestion(expandedQuestion === question.id ? null : question.id)}
               >
-                <GripVertical className="w-5 h-5 text-gray-500" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <span className="bg-gray-700 px-2 py-0.5 rounded text-sm">
+                <GripVertical className="h-5 w-5 text-white/25" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex h-6 min-w-[24px] items-center justify-center rounded-full bg-white/10 px-2 text-[11.5px] font-semibold text-white/80">
                       {index + 1}
                     </span>
-                    <span className="font-medium">{question.question}</span>
+                    <span className="truncate font-medium text-white">{question.question}</span>
                     {question.isFirst && (
-                      <span className="bg-blue-600 px-2 py-0.5 rounded text-xs">
+                      <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
                         ראשונה
                       </span>
                     )}
                   </div>
-                  <div className="text-sm text-gray-400 mt-1">
+                  <div className="mt-1 text-[12px] text-white/50">
                     {getTypeLabel(question.type)} • {question.options?.length || 0} אפשרויות
                   </div>
                 </div>
@@ -210,39 +207,40 @@ export default function QuestionsPage() {
                     e.stopPropagation();
                     removeQuestion(question.id);
                   }}
-                  className="p-2 hover:bg-red-600 rounded transition-colors"
+                  className="rounded-lg p-2 text-white/60 transition hover:bg-red-500/15 hover:text-red-300"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
                 {expandedQuestion === question.id ? (
-                  <ChevronUp className="w-5 h-5" />
+                  <ChevronUp className="h-5 w-5 text-white/50" />
                 ) : (
-                  <ChevronDown className="w-5 h-5" />
+                  <ChevronDown className="h-5 w-5 text-white/50" />
                 )}
               </div>
 
-              {/* תוכן מורחב */}
               {expandedQuestion === question.id && (
-                <div className="border-t border-gray-700 p-4 space-y-4">
-                  {/* טקסט השאלה */}
+                <div className="space-y-4 border-t border-white/10 bg-black/20 p-4">
                   <div>
-                    <label className="block text-sm text-gray-400 mb-2">טקסט השאלה</label>
+                    <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                      טקסט השאלה
+                    </label>
                     <input
                       type="text"
                       value={question.question}
                       onChange={(e) => updateQuestion(question.id, { question: e.target.value })}
-                      className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:border-blue-500 outline-none"
+                      className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-[14px] text-white placeholder:text-white/40 focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                     />
                   </div>
 
-                  {/* סוג השאלה */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">סוג שאלה</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                        סוג שאלה
+                      </label>
                       <select
                         value={question.type}
                         onChange={(e) => updateQuestion(question.id, { type: e.target.value as Question['type'] })}
-                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:border-blue-500 outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[14px] text-white focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                       >
                         <option value="single-choice">בחירה יחידה</option>
                         <option value="multi-choice">בחירה מרובה</option>
@@ -250,11 +248,13 @@ export default function QuestionsPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">שאלה הבאה (ברירת מחדל)</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                        שאלה הבאה (ברירת מחדל)
+                      </label>
                       <select
                         value={question.nextQuestion || ''}
                         onChange={(e) => updateQuestion(question.id, { nextQuestion: e.target.value || undefined })}
-                        className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 focus:border-blue-500 outline-none"
+                        className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5 text-[14px] text-white focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                       >
                         <option value="">בחר שאלה...</option>
                         <option value="END">סיום (טופס פרטים)</option>
@@ -265,13 +265,11 @@ export default function QuestionsPage() {
                     </div>
                   </div>
 
-                  {/* שאלה ראשונה */}
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2">
                     <input
                       type="checkbox"
                       checked={question.isFirst || false}
                       onChange={(e) => {
-                        // אם מסמנים כראשונה, בטל את הסימון מכל השאר
                         if (e.target.checked) {
                           setQuestions(questions.map(q => ({
                             ...q,
@@ -281,29 +279,30 @@ export default function QuestionsPage() {
                           updateQuestion(question.id, { isFirst: false });
                         }
                       }}
-                      className="w-4 h-4 rounded"
+                      className="h-4 w-4 rounded accent-emerald-500"
                     />
-                    <span className="text-sm">זו השאלה הראשונה</span>
+                    <span className="text-[13.5px] text-white/85">זו השאלה הראשונה של הצ׳אט</span>
                   </label>
 
-                  {/* אפשרויות */}
                   {question.type !== 'text' && (
                     <div>
-                      <label className="block text-sm text-gray-400 mb-2">אפשרויות תשובה</label>
+                      <label className="mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-white/45">
+                        אפשרויות תשובה
+                      </label>
                       <div className="space-y-2">
                         {question.options?.map((option, optIndex) => (
-                          <div key={option.id} className="flex gap-2">
+                          <div key={option.id} className="flex flex-wrap gap-2 sm:flex-nowrap">
                             <input
                               type="text"
                               value={option.label}
                               onChange={(e) => updateOption(question.id, optIndex, { label: e.target.value })}
                               placeholder="טקסט האפשרות"
-                              className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none"
+                              className="min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[13.5px] text-white placeholder:text-white/40 focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                             />
                             <select
                               value={option.nextQuestion || ''}
                               onChange={(e) => updateOption(question.id, optIndex, { nextQuestion: e.target.value || undefined })}
-                              className="w-40 bg-gray-700 border border-gray-600 rounded-lg px-2 py-2 text-sm focus:border-blue-500 outline-none"
+                              className="w-full sm:w-44 rounded-xl border border-white/10 bg-white/[0.04] px-2.5 py-2 text-[13px] text-white focus:border-emerald-400/50 focus:outline-none focus:ring-2 focus:ring-emerald-400/20"
                             >
                               <option value="">שאלה הבאה...</option>
                               <option value="END">סיום</option>
@@ -313,15 +312,15 @@ export default function QuestionsPage() {
                             </select>
                             <button
                               onClick={() => removeOption(question.id, optIndex)}
-                              className="p-2 hover:bg-red-600 rounded transition-colors"
+                              className="rounded-xl p-2 text-white/60 transition hover:bg-red-500/15 hover:text-red-300"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="h-4 w-4" />
                             </button>
                           </div>
                         ))}
                         <button
                           onClick={() => addOption(question.id)}
-                          className="w-full py-2 border border-dashed border-gray-600 rounded-lg text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors text-sm"
+                          className="w-full rounded-xl border border-dashed border-white/15 py-2 text-[13px] text-white/55 transition hover:border-white/30 hover:bg-white/[0.04] hover:text-white/85"
                         >
                           + הוסף אפשרות
                         </button>
@@ -333,17 +332,15 @@ export default function QuestionsPage() {
             </div>
           ))}
 
-          {/* כפתור הוספת שאלה */}
           <button
             onClick={addQuestion}
-            className="w-full py-4 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/15 py-5 text-white/55 transition hover:border-emerald-400/40 hover:bg-emerald-500/5 hover:text-emerald-300"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="h-5 w-5" />
             הוסף שאלה חדשה
           </button>
         </div>
-      </div>
-    </div>
+    </AdminShell>
   );
 }
 

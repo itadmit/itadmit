@@ -4,15 +4,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { ProjectData } from '@/components/ProjectSection';
-import { Copy, Trash2, Plus, Save, X, LogOut, ImageIcon, Check, Users, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+import { Copy, Trash2, Plus, Save, X, ImageIcon, Check } from 'lucide-react';
+import AdminShell from '@/components/admin/AdminShell';
 
 // טיפוס למודל בחירת תמונה
 type MediaModalType = 'logo' | 'desktop' | 'mobile' | null;
 
-type ImageFileEntry = { name: string; path: string };
+type ImageFileEntry = { name: string; path: string; uploadedAt?: number };
 
-/** למודל רקע דסקטופ/מובייל — מאחד לוגואים ורקעים כדי שכל הנכסים יהיו זמינים לבחירה */
+/** למודל רקע דסקטופ/מובייל — מאחד לוגואים ורקעים; ממוין לפי הועלה אחרון ראשון */
 function mergeLogoAndBackgroundFiles(
   logos: ImageFileEntry[],
   backgrounds: ImageFileEntry[]
@@ -24,7 +24,7 @@ function mergeLogoAndBackgroundFiles(
     seen.add(f.path);
     out.push(f);
   }
-  out.sort((a, b) => a.name.localeCompare(b.name, 'he'));
+  out.sort((a, b) => (b.uploadedAt ?? 0) - (a.uploadedAt ?? 0));
   return out;
 }
 
@@ -343,11 +343,6 @@ export default function AdminDashboard() {
     setEditedProject(null);
   };
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/login', { method: 'DELETE' });
-    router.push('/login');
-  };
-
   const handleSaveSiteSettings = async () => {
     try {
       const res = await fetch('/api/site-settings', {
@@ -429,40 +424,16 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-900 text-white p-8" dir="rtl">
-      <div className="mx-auto max-w-7xl min-w-0">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold">ניהול פרויקטים</h1>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin-dashboard/leads"
-              className="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded flex items-center gap-2 transition-colors"
-            >
-              <Users className="w-4 h-4" />
-              לידים
-            </Link>
-            <Link
-              href="/admin-dashboard/questions"
-              className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded flex items-center gap-2 transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              שאלות
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              התנתק
-            </button>
-          </div>
-        </div>
-
+    <AdminShell
+      title="פרויקטים"
+      subtitle={`${projects.length} פרויקטים באתר • ניתן לגרור לסידור מחדש`}
+    >
+      <div className="min-w-0">
         <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-3">
           {/* רשימת פרויקטים */}
-          <div className="min-w-0 rounded-lg bg-gray-800 p-6">
+          <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] p-5">
             <div className="mb-4 flex items-center justify-between gap-2">
-              <h2 className="min-w-0 shrink text-2xl font-bold">פרויקטים</h2>
+              <h2 className="min-w-0 shrink text-xl font-semibold">פרויקטים</h2>
               <button
                 onClick={() => {
                   const newProject: ProjectData = {
@@ -477,16 +448,16 @@ export default function AdminDashboard() {
                   setIsEditing(true);
                   setEditedProject(newProject);
                 }}
-                className="flex shrink-0 items-center gap-2 rounded bg-green-600 px-4 py-2 hover:bg-green-700"
+                className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-3.5 py-2 text-sm font-semibold text-white shadow-[0_4px_18px_-4px_rgba(16,185,129,0.55)] transition hover:bg-emerald-400"
               >
-                <Plus className="w-4 h-4" />
+                <Plus className="h-4 w-4" />
                 חדש
               </button>
             </div>
-            <div className="max-h-[600px] space-y-2 overflow-y-auto overflow-x-hidden">
+            <div className="max-h-[640px] space-y-1.5 overflow-y-auto overflow-x-hidden pr-0.5">
               {projects.length === 0 ? (
-                <div className="text-gray-400 text-center py-8">
-                  אין פרויקטים. לחץ על &quot;חדש&quot; כדי להוסיף פרויקט.
+                <div className="rounded-xl border border-dashed border-white/10 bg-white/[0.02] py-10 text-center text-sm text-white/50">
+                  אין פרויקטים. לחצו על &quot;חדש&quot; כדי להוסיף.
                 </div>
               ) : (
                 projects.map((project) => (
@@ -497,13 +468,11 @@ export default function AdminDashboard() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, project.id)}
                   onDragEnd={handleDragEnd}
-                  className={`cursor-pointer rounded p-3 transition-colors ${
+                  className={`cursor-pointer rounded-xl border p-3 transition ${
                     selectedProject?.id === project.id
-                      ? 'bg-blue-600'
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  } ${
-                    draggedProject === project.id ? 'opacity-50' : ''
-                  }`}
+                      ? 'border-emerald-400/50 bg-emerald-500/10'
+                      : 'border-white/5 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]'
+                  } ${draggedProject === project.id ? 'opacity-50' : ''}`}
                   onClick={() => {
                     setSelectedProject(project);
                     setIsEditing(true);
@@ -512,24 +481,24 @@ export default function AdminDashboard() {
                 >
                   <div className="flex min-w-0 items-start justify-between gap-2">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <span className="shrink-0 cursor-move select-none text-xs text-gray-500">
+                      <span className="shrink-0 cursor-move select-none text-white/30">
                         ☰
                       </span>
                       <div className="min-w-0 flex-1">
-                        <h3 className="break-words font-semibold leading-tight">{project.title}</h3>
-                        <p className="truncate text-sm text-gray-400">{project.description}</p>
+                        <h3 className="break-words text-[14px] font-semibold leading-tight text-white">{project.title}</h3>
+                        <p className="truncate text-[12px] text-white/50">{project.description}</p>
                       </div>
                     </div>
-                    <div className="flex shrink-0 gap-2">
+                    <div className="flex shrink-0 gap-1">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDuplicate(project.id);
                         }}
-                        className="p-1 hover:bg-gray-500 rounded"
+                        className="rounded-lg p-1.5 text-white/60 transition hover:bg-white/10 hover:text-white"
                         title="שכפל"
                       >
-                        <Copy className="w-4 h-4" />
+                        <Copy className="h-4 w-4" />
                       </button>
                       <button
                         onClick={(e) => {
@@ -550,17 +519,17 @@ export default function AdminDashboard() {
           </div>
 
           {/* עריכת פרויקט */}
-          <div className="min-w-0 rounded-lg bg-gray-800 p-6 lg:col-span-2">
+          <div className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.035] p-6 lg:col-span-2">
             {selectedProject ? (
               <>
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">
+                <div className="mb-5 flex items-center justify-between gap-2">
+                  <h2 className="text-xl font-semibold">
                     {isEditing ? 'עריכת פרויקט' : selectedProject.title}
                   </h2>
                   {!isEditing && (
                     <button
                       onClick={handleEdit}
-                      className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+                      className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/90 transition hover:border-white/25 hover:bg-white/10"
                     >
                       ערוך
                     </button>
@@ -803,10 +772,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-gray-800 rounded-lg p-6 mt-8 border border-gray-700">
-          <h2 className="text-xl font-bold mb-2">רקעים בעמוד הבית</h2>
-          <p className="text-gray-400 text-sm mb-6">
-            סקשן &quot;עוד עבודות&quot; ויצירת קשר — דסקטופ ומובייל (מתחת ל־md). אפשר להעלות תמונה ישירות לכל רקע או לבחור מהרשימה. אחרי העלאה לחץ &quot;שמור רקעים&quot;.
+        <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+          <h2 className="text-xl font-semibold">רקעים בעמוד הבית</h2>
+          <p className="mt-1 mb-5 text-sm text-white/55">
+            סקשן &quot;עוד עבודות&quot; ויצירת קשר — דסקטופ ומובייל (מתחת ל־md). אפשר להעלות תמונה ישירות לכל רקע או לבחור מהרשימה. אחרי העלאה לחצו &quot;שמור רקעים&quot;.
           </p>
           <div className="grid gap-8 sm:grid-cols-2">
             <div>
@@ -1054,8 +1023,9 @@ export default function AdminDashboard() {
           <button
             type="button"
             onClick={handleSaveSiteSettings}
-            className="mt-6 rounded bg-green-600 px-6 py-2 font-medium hover:bg-green-700"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_4px_18px_-4px_rgba(16,185,129,0.55)] transition hover:bg-emerald-400"
           >
+            <Save className="h-4 w-4" />
             שמור רקעים
           </button>
         </div>
@@ -1063,12 +1033,12 @@ export default function AdminDashboard() {
 
       {/* מודל בחירת תמונה */}
       {mediaModal && editedProject && (
-        <div 
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
           onClick={() => setMediaModal(null)}
         >
-          <div 
-            className="bg-gray-800 rounded-xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+          <div
+            className="w-full max-w-4xl max-h-[82vh] overflow-hidden rounded-2xl border border-white/10 bg-[#0f1729] shadow-[0_24px_80px_-24px_rgba(0,0,0,0.8)]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* כותרת המודל */}
@@ -1205,7 +1175,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
-    </div>
+    </AdminShell>
   );
 }
 

@@ -9,6 +9,7 @@ export const runtime = 'nodejs';
 interface ImageEntry {
   name: string;
   path: string;
+  uploadedAt: number;
 }
 
 async function listLocal(
@@ -17,9 +18,23 @@ async function listLocal(
 ): Promise<ImageEntry[]> {
   try {
     const files = await fs.readdir(dir);
-    return files
-      .filter((file) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file))
-      .map((file) => ({ name: file, path: `${prefix}/${file}` }));
+    const stats = await Promise.all(
+      files
+        .filter((file) => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file))
+        .map(async (file) => {
+          try {
+            const s = await fs.stat(path.join(dir, file));
+            return {
+              name: file,
+              path: `${prefix}/${file}`,
+              uploadedAt: s.mtimeMs,
+            };
+          } catch {
+            return null;
+          }
+        })
+    );
+    return stats.filter((x): x is ImageEntry => x !== null);
   } catch {
     return [];
   }
@@ -34,6 +49,7 @@ async function listBlob(folder: string): Promise<ImageEntry[]> {
       .map((b) => ({
         name: b.pathname.split('/').pop() || b.pathname,
         path: b.url,
+        uploadedAt: b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0,
       }));
   } catch (err) {
     console.error('Blob list failed:', err);
@@ -41,12 +57,15 @@ async function listBlob(folder: string): Promise<ImageEntry[]> {
   }
 }
 
-function dedupe(entries: ImageEntry[]): ImageEntry[] {
+function mergeAndSort(entries: ImageEntry[]): ImageEntry[] {
   const seen = new Map<string, ImageEntry>();
   for (const e of entries) {
-    if (!seen.has(e.name)) seen.set(e.name, e);
+    const prev = seen.get(e.name);
+    if (!prev || e.uploadedAt > prev.uploadedAt) seen.set(e.name, e);
   }
-  return Array.from(seen.values());
+  return Array.from(seen.values()).sort(
+    (a, b) => b.uploadedAt - a.uploadedAt
+  );
 }
 
 export async function GET() {
@@ -63,8 +82,8 @@ export async function GET() {
     ]);
 
     return NextResponse.json({
-      logos: dedupe([...logosLocal, ...logosBlob]),
-      backgrounds: dedupe([...bgLocal, ...bgBlob]),
+      logos: mergeAndSort([...logosLocal, ...logosBlob]),
+      backgrounds: mergeAndSort([...bgLocal, ...bgBlob]),
     });
   } catch (error) {
     console.error('Error fetching images:', error);
