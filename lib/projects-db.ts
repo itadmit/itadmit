@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { ensureNeonSchema } from './ensure-neon-schema';
 import { getNeon, isNeonEnabled } from './neon';
 import { ProjectData } from './projects';
 import { getProjects as getProjectsJson, saveProjects } from './projects';
@@ -69,6 +70,7 @@ function syncJsonAfterSqliteWrite(): void {
 
 export async function getProjects(): Promise<ProjectData[]> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`
       SELECT * FROM projects
@@ -98,6 +100,7 @@ export async function getProjects(): Promise<ProjectData[]> {
 
 export async function saveProjectsToDb(projects: ProjectData[]): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     for (const p of projects) {
       const r = projectToRow(p);
@@ -171,6 +174,7 @@ export async function updateProject(
   updatedProject: Partial<ProjectData>
 ): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`SELECT * FROM projects WHERE id = ${id} LIMIT 1`) as ProjectRow[];
     const existing = rows[0];
@@ -235,6 +239,7 @@ export async function updateProject(
 
 export async function deleteProject(id: string): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     await sql`DELETE FROM projects WHERE id = ${id}`;
     return;
@@ -269,6 +274,7 @@ export async function duplicateProject(id: string): Promise<ProjectData | null> 
 
 export async function updateProjectsOrder(projectIds: string[]): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     let index = 0;
     for (const pid of projectIds) {

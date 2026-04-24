@@ -428,10 +428,11 @@ export default function Home() {
           const nextId = nextProject ? nextProject.id : 'more-projects';
           
           return (
-            <ProjectSection 
-              key={project.id} 
-              project={{...project, isLast: index === displayProjects.length - 1}} 
+            <ProjectSection
+              key={project.id}
+              project={{ ...project, isLast: index === displayProjects.length - 1 }}
               nextId={nextId}
+              onOpenQuoteBot={() => setQuoteBotOpen(true)}
             />
           );
         })}

@@ -1,3 +1,4 @@
+import { ensureNeonSchema } from './ensure-neon-schema';
 import { getNeon, isNeonEnabled } from './neon';
 import fs from 'fs';
 import path from 'path';
@@ -26,6 +27,7 @@ function writeQuestionsToFile(questions: Question[]) {
 
 export async function getAllQuestions(): Promise<Question[]> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`
       SELECT id, payload FROM wizard_questions
@@ -38,6 +40,7 @@ export async function getAllQuestions(): Promise<Question[]> {
 
 export async function replaceAllQuestions(questions: Question[]): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     await sql`DELETE FROM wizard_questions`;
     for (const q of questions) {
@@ -53,6 +56,7 @@ export async function replaceAllQuestions(questions: Question[]): Promise<void> 
 
 export async function insertQuestion(question: Question): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const payload = JSON.stringify(question);
     await sql`
@@ -70,6 +74,7 @@ export async function updateQuestionById(
   patch: Partial<Question>
 ): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`
       SELECT payload FROM wizard_questions WHERE id = ${id} LIMIT 1
@@ -92,6 +97,7 @@ export async function updateQuestionById(
 
 export async function deleteQuestionById(id: string): Promise<boolean> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     await sql`DELETE FROM wizard_questions WHERE id = ${id}`;
     return true;

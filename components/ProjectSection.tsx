@@ -1,5 +1,12 @@
+'use client';
+
 import Image from 'next/image';
-import { ChevronLeft, MessageCircle, ArrowDown } from 'lucide-react';
+import { ChevronLeft, MessageCircle, ArrowDown, Sparkles } from 'lucide-react';
+
+const WHATSAPP_PHONE = '972542284283';
+const LABEL_WHATSAPP = 'הצעת מחיר בוואטסאפ';
+const LABEL_BOT =
+  'חדש: הצעת מחיר מלאה מהבוט שלנו בלי לדבר עם אף אחד';
 
 export interface ProjectData {
   id: string;
@@ -15,7 +22,20 @@ export interface ProjectData {
   backgroundImageMobile?: string; // תמונת רקע למובייל
 }
 
-export default function ProjectSection({ project, nextId }: { project: ProjectData; nextId?: string }) {
+export default function ProjectSection({
+  project,
+  nextId,
+  onOpenQuoteBot,
+}: {
+  project: ProjectData;
+  nextId?: string;
+  /** פותח מודל בוט הצעת מחיר */
+  onOpenQuoteBot?: () => void;
+}) {
+  const waMessage =
+    project.whatsappText?.trim() ||
+    `היי, הגעתי מהאתר (עמוד ${project.title}) ואשמח להצעת מחיר בוואטסאפ.`;
+  const waHref = `https://api.whatsapp.com/send/?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(waMessage)}`;
   return (
     <section 
       id={project.id} 
@@ -92,16 +112,28 @@ export default function ProjectSection({ project, nextId }: { project: ProjectDa
               </a>
             )}
 
-            {/* WhatsApp Button */}
-            <a 
-              href={`https://api.whatsapp.com/send/?phone=972542284283&text=${encodeURIComponent(project.whatsappText || 'הצעת מחיר מהירה בקליק')}`}
-              target="_blank" 
+            {/* WhatsApp */}
+            <a
+              href={waHref}
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3 text-base font-medium hover:bg-[#20BA5A] transition-colors rounded"
             >
-              <span>חדש: {project.whatsappText || 'הצעת מחיר מהירה בקליק ישירות ל-Whatsapp'}</span>
-              <MessageCircle className="w-5 h-5" />
+              <span>{LABEL_WHATSAPP}</span>
+              <MessageCircle className="w-5 h-5 shrink-0" />
             </a>
+
+            {/* בוט הצעת מחיר */}
+            {onOpenQuoteBot ? (
+              <button
+                type="button"
+                onClick={() => onOpenQuoteBot()}
+                className="inline-flex items-center gap-2 border-2 border-white bg-transparent text-white px-8 py-3 text-sm md:text-base font-medium hover:bg-white hover:text-black transition-colors rounded text-right"
+              >
+                <span>{LABEL_BOT}</span>
+                <Sparkles className="w-5 h-5 shrink-0" aria-hidden />
+              </button>
+            ) : null}
 
           </div>
         </div>

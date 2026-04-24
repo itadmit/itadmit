@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { ensureNeonSchema } from './ensure-neon-schema';
 import { getNeon, isNeonEnabled } from './neon';
 import fs from 'fs';
 import path from 'path';
@@ -67,6 +68,7 @@ function rowsToSiteSettings(
 /** קריאה מאוחדת: Neon → SQLite → JSON */
 export async function getSiteSettings(): Promise<SiteSettings> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`SELECT key, value FROM site_settings`) as {
       key: string;
@@ -115,6 +117,7 @@ export async function updateSiteSettings(
   };
 
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const pairs: [string, string][] = [
       ['more_projects_background', next.moreProjectsBackground],

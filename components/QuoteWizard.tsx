@@ -254,7 +254,7 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
                   </div>
                   <h2 className="flex items-center justify-center gap-2 text-2xl font-bold text-white mb-3">
                     <PhoneOff className="h-7 w-7 shrink-0 text-emerald-400" aria-hidden />
-                    <span>2025, כבר לא מדברים בטלפון</span>
+                    <span>2026, כבר לא מדברים בטלפון</span>
                   </h2>
                   <p className="text-gray-400 mb-2 max-w-sm mx-auto">
                     רוצים לדעת כמה עולה? כמה שאלות קצרות ויש לכם הצעת מחיר.

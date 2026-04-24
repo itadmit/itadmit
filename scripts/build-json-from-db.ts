@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { saveProjects } from '../lib/projects';
 import { getProjects } from '../lib/projects-db';
 

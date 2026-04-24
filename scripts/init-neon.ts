@@ -1,11 +1,12 @@
 /**
  * יוצר טבלאות ב-Neon ומזרים מ-data/*.json (אם קיימים).
  *
- * הרצה מהשורש:
- *   DATABASE_URL="postgresql://..." npx tsx scripts/init-neon.ts
+ * הרצה: npm run db:init-neon
+ * (טוען אוטומטית את .env מהשורש — כמו Next)
  *
- * אפשר גם להריץ ידנית את scripts/neon-schema.sql ב-SQL Editor של Neon.
+ * אפשר גם: DATABASE_URL="postgresql://..." npx tsx scripts/init-neon.ts
  */
+import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { neon } from '@neondatabase/serverless';

@@ -1,3 +1,4 @@
+import { ensureNeonSchema } from './ensure-neon-schema';
 import { getNeon, isNeonEnabled } from './neon';
 import fs from 'fs';
 import path from 'path';
@@ -55,6 +56,7 @@ function rowToLead(r: LeadRow): Lead {
 
 export async function getAllLeads(): Promise<Lead[]> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`
       SELECT id, name, phone, email, company, answers, estimated_price, status, created_at, notes
@@ -67,6 +69,7 @@ export async function getAllLeads(): Promise<Lead[]> {
 
 export async function insertLead(lead: Lead): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const answersJson = JSON.stringify(lead.answers);
     await sql`
@@ -93,6 +96,7 @@ export async function insertLead(lead: Lead): Promise<void> {
 
 export async function updateLeadById(id: string, patch: Partial<Lead>): Promise<void> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     const rows = (await sql`
       SELECT id, name, phone, email, company, answers, estimated_price, status, created_at, notes
@@ -125,6 +129,7 @@ export async function updateLeadById(id: string, patch: Partial<Lead>): Promise<
 
 export async function deleteLeadById(id: string): Promise<boolean> {
   if (isNeonEnabled()) {
+    await ensureNeonSchema();
     const sql = getNeon();
     await sql`DELETE FROM leads WHERE id = ${id}`;
     return true;

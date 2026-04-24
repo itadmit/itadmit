@@ -5,14 +5,13 @@
     "description": "בניית חנות וירטואלית במערכת שופיפיי למותג טיפוח השיער של עדן פינס. באתר הקפדנו על חווית רכישה נוחה וקלה במיוחד תוך דגש על סטנדרטים בין לאומיים כולל עיצוב לתמונות המוצרים ויצירת שפה גרפית אחידה.",
     "logoSrc": "/images/logos/fifi.webp",
     "logoWidth": 200,
-    "logoHeight": null,
     "siteUrl": "https://fifi-beauty.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/hero1.jpg",
     "backgroundImageMobile": "/images/bg/hero1m.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 10:11:47",
-    "display_order": 0
+    "display_order": 0,
+    "created_at": "2026-04-24T11:28:15.996Z",
+    "updated_at": "2026-04-24T11:28:15.996Z"
   },
   {
     "id": "talia-ovadia",
@@ -20,14 +19,13 @@
     "description": "בניית חנות וירטואלית בין לאומית בשופיפיי, מרהיבה במיוחד למותג מוצרי השיער של טליה עובדיה, האתר משלב הנפשות וידאויים וחומרים בסטדנרטים בין לאומיים תוך דגש על עיצוב מודרני עכשווי.",
     "logoSrc": "/images/logos/talia.webp",
     "logoWidth": 250,
-    "logoHeight": null,
     "siteUrl": "https://criniere.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/talia-bg.jpg",
     "backgroundImageMobile": "/images/bg/talia-bg.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:48:14",
-    "display_order": 1
+    "display_order": 1,
+    "created_at": "2026-04-24T11:28:16.065Z",
+    "updated_at": "2026-04-24T11:28:16.065Z"
   },
   {
     "id": "einav-bublil",
@@ -35,14 +33,13 @@
     "description": "בניית חנות וירטואלית במערכת קוויק שופ לרכישת ספר המתכונים של עינב בובליל, האתר נבנה בדגש על פשטות בתהליך הרכישה תוך דגש על נראות מודרנית ונקייה.",
     "logoSrc": "/images/logos/einav.webp",
     "logoWidth": 250,
-    "logoHeight": null,
     "siteUrl": "https://einavbooblil.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/einav-d.jpg",
     "backgroundImageMobile": "/images/bg/einav-d.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 11:26:05",
-    "display_order": 2
+    "display_order": 2,
+    "created_at": "2026-04-24T11:28:16.129Z",
+    "updated_at": "2026-04-24T11:28:16.129Z"
   },
   {
     "id": "aline-cohen",
@@ -50,14 +47,13 @@
     "description": "בניית חנות וירטואלית בין לאומית בשופיפיי, מרהיבה במיוחד למותג הקוסמטיקה של אלין כהן, האתר משלב וידאויים, הנפשות ואנימציות בסטדנרטים בין לאומיים שלא נראו בישראל עד כה.",
     "logoSrc": "/images/logos/aline.webp",
     "logoWidth": 300,
-    "logoHeight": null,
     "siteUrl": "https://alinecohencosmetics.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/aline-d.jpeg",
     "backgroundImageMobile": "/images/bg/aline-d.jpeg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 07:50:08",
-    "display_order": 3
+    "display_order": 3,
+    "created_at": "2026-04-24T11:28:16.197Z",
+    "updated_at": "2026-04-24T11:28:16.197Z"
   },
   {
     "id": "olier-paris",
@@ -65,14 +61,13 @@
     "description": "בניית חנות וירטואלית במערכת שופיפיי למותג מוצרי השיער אולייר פריז, חנות אלגנטית מודרנית ונקייה כיאה לאופי המותג.",
     "logoSrc": "/images/logos/olier.webp",
     "logoWidth": 250,
-    "logoHeight": null,
     "siteUrl": "https://oliereparis.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/45-1.jpg",
     "backgroundImageMobile": "/images/bg/WhatsApp-Image-2024-08-16-at-12.34.09.jpeg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 07:51:43",
-    "display_order": 4
+    "display_order": 4,
+    "created_at": "2026-04-24T11:28:16.261Z",
+    "updated_at": "2026-04-24T11:28:16.261Z"
   },
   {
     "id": "or",
@@ -80,14 +75,13 @@
     "description": "בניית חנות וירטואלית מרהיבה למכירת עוגות, קינוחים ומוצרי אור שפיץ נוספים.",
     "logoSrc": "/images/logos/or.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://orshpitz.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/barbarsi-d.jpeg",
     "backgroundImageMobile": "/images/bg/barbarsi-d.jpeg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:48:48",
-    "display_order": 5
+    "display_order": 5,
+    "created_at": "2026-04-24T11:28:16.329Z",
+    "updated_at": "2026-04-24T11:28:16.329Z"
   },
   {
     "id": "daniel",
@@ -95,14 +89,13 @@
     "description": "בניית חנות וירטואלית במערכת שופיפיי למותג בגדי הילדים היוקרתי של דניאל גרינברג. האתר נבנה ועוצב בהתאם לאופי החברה ואיכות המותג היוקרתי.",
     "logoSrc": "/images/logos/miel.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://wewearmiel.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/WhatsApp-Image-2023-02-09-at-18.01.45.jpeg",
     "backgroundImageMobile": "/images/bg/מובייל-דניאל.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:08:14",
-    "display_order": 6
+    "display_order": 6,
+    "created_at": "2026-04-24T11:28:16.393Z",
+    "updated_at": "2026-04-24T11:28:16.393Z"
   },
   {
     "id": "incense",
@@ -110,14 +103,13 @@
     "description": "בניית אתר איקומרס מרהיב ובין לאומי בעברית ובאנגלית למותג הבישום המוכר Incense Parfums.",
     "logoSrc": "/images/logos/incense.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://incenseparfums.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/6_3721e797-f578-4e41-b7dd-e6ffc4297c6c.jpg",
     "backgroundImageMobile": "/images/bg/9.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 07:55:39",
-    "display_order": 7
+    "display_order": 7,
+    "created_at": "2026-04-24T11:28:16.460Z",
+    "updated_at": "2026-04-24T11:28:16.460Z"
   },
   {
     "id": "port",
@@ -125,14 +117,13 @@
     "description": "בניית חנות וירטואלית למותג עיצוב הבית של דורין דותן. האתר כולל מותגים בין לאומיים מוכרים מכל העולם. עיצוב נקי, עם נגיעות פסטליות נעימות, כמקובל בארצות הנורדיות – סקנדינביות.",
     "logoSrc": "/images/logos/port.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://porthomedesign.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/82049624_high-3-1067x800-1.jpg",
     "backgroundImageMobile": "/images/bg/82048963_high-4-600x800-1_jpg_92.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 11:26:31",
-    "display_order": 8
+    "display_order": 8,
+    "created_at": "2026-04-24T11:28:16.524Z",
+    "updated_at": "2026-04-24T11:28:16.524Z"
   },
   {
     "id": "labeaute",
@@ -140,14 +131,12 @@
     "description": "בנייה והקמת אתר איקומרס בשופיפיי למותג מוצרי השיער המוביל בישראל, האתר הותאם לעומסים גבוהים ותוכנן בקפידה עם דגש על כל פיקסל.",
     "logoSrc": "/images/logos/labeaute.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://labeauteisrael.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/ezgif-1-087e620fe8.jpeg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 07:57:49",
-    "display_order": 9
+    "display_order": 9,
+    "created_at": "2026-04-24T11:28:16.592Z",
+    "updated_at": "2026-04-24T11:28:16.592Z"
   },
   {
     "id": "juv",
@@ -155,14 +144,13 @@
     "description": "בניית אתר איקומרס בין לאומי לבגדי הספורט של JUV אשר מאפשרים לכל אישה להרגיש במיטבה, נשית, ספורטיבית, סקסית, ראויה ויכולה.",
     "logoSrc": "/images/logos/juv.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://juv-activewear.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/ezgif-3-ce5ae0b748-scaled.jpeg",
     "backgroundImageMobile": "/images/bg/cfa920b4-7a86-4bf2-a38c-843f1ff03436.jpeg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 07:59:00",
-    "display_order": 10
+    "display_order": 10,
+    "created_at": "2026-04-24T11:28:16.657Z",
+    "updated_at": "2026-04-24T11:28:16.657Z"
   },
   {
     "id": "mali",
@@ -170,14 +158,13 @@
     "description": "בניית אתר איקומרס אלגנטי ונקי בשילוב שוטף של סרטוני וידאו לבושם היוקרתי החדש של מלי לוי.",
     "logoSrc": "/images/logos/mlikemali.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://mlikemali.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/+.jpeg",
     "backgroundImageMobile": "/images/bg/WhatsApp-Image-2022-03-31-at-13.13.54-2.jpeg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:00:23",
-    "display_order": 11
+    "display_order": 11,
+    "created_at": "2026-04-24T11:28:16.725Z",
+    "updated_at": "2026-04-24T11:28:16.725Z"
   },
   {
     "id": "ruze",
@@ -185,14 +172,12 @@
     "description": "בניית אתר איקומרס בין לאומי בעברית ובאנגלית למותג בגדי הספורט ההיסטרי של שי זהבי.",
     "logoSrc": "/images/logos/ruze.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://ruzesport.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/shay-d.jpg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 12
+    "display_order": 12,
+    "created_at": "2026-04-24T11:28:16.788Z",
+    "updated_at": "2026-04-24T11:28:16.788Z"
   },
   {
     "id": "israelbidur",
@@ -200,14 +185,12 @@
     "description": "פיתוח אתר חדשני וסופר מתקדם למצעד המוזיקה השבועי של ״ישראל בידור״, הגולשים יכולים להאזין לשירים חדשים, לקרוא כתבות וכמובן - להצביע ולהשפיע על המצעד השבועי.",
     "logoSrc": "/images/logos/israelbidur.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "#",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/hero1.jpg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 13
+    "display_order": 13,
+    "created_at": "2026-04-24T11:28:16.855Z",
+    "updated_at": "2026-04-24T11:28:16.855Z"
   },
   {
     "id": "jone",
@@ -215,14 +198,12 @@
     "description": "אתר בגדי המותגים המוביל בישראל עם חווית רכישה שלא הייתה עד כה בישראל. האתר החדש נבנה במערכת שופיפי ומכיל אפשרויות סינון ופלטור רבות שעוזרות לגולש למצוא את פריט הלבוש שהוא מחפש במהירות ובפשטות.",
     "logoSrc": "/images/logos/jonebrand.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://j-onebrands.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/02.jpg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:01:58",
-    "display_order": 14
+    "display_order": 14,
+    "created_at": "2026-04-24T11:28:16.918Z",
+    "updated_at": "2026-04-24T11:28:16.918Z"
   },
   {
     "id": "kim",
@@ -230,14 +211,13 @@
     "description": "בניית אתר קטלוג יוקרתי בין לאומי למותג שמלות הכלה והערב קים קסאס.",
     "logoSrc": "/images/logos/kim.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "http://kimkassascouture.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/kim-d.jpg",
     "backgroundImageMobile": "/images/bg/kim-m.jpg",
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 15
+    "display_order": 15,
+    "created_at": "2026-04-24T11:28:16.987Z",
+    "updated_at": "2026-04-24T11:28:16.987Z"
   },
   {
     "id": "yochi",
@@ -245,14 +225,12 @@
     "description": "בניית חנות וירטואלית למותג האופנה המצליח של יוכי אפוליאון.",
     "logoSrc": "/images/logos/yochi.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://www.yochiapolyon.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/hero1.jpg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 16
+    "display_order": 16,
+    "created_at": "2026-04-24T11:28:17.054Z",
+    "updated_at": "2026-04-24T11:28:17.054Z"
   },
   {
     "id": "romis",
@@ -260,14 +238,12 @@
     "description": "בניית חנות וירטואלית למותג האופנה הפורץ והדינאמי של רומי עפרון.",
     "logoSrc": "/images/logos/romiss.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://romiss.co.il/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/romi-m.jpg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 17
+    "display_order": 17,
+    "created_at": "2026-04-24T11:28:17.121Z",
+    "updated_at": "2026-04-24T11:28:17.121Z"
   },
   {
     "id": "barbarsi",
@@ -275,14 +251,12 @@
     "description": "בניית חנות וירטואלית עם קונספט ייחודי חצוף ונועז שלא נראה כמותו בישראל.",
     "logoSrc": "/images/logos/barbarsi.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://barbarsi.shop/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/barbarsi-d.jpeg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2025-12-19 07:12:03",
-    "display_order": 18
+    "display_order": 18,
+    "created_at": "2026-04-24T11:28:17.186Z",
+    "updated_at": "2026-04-24T11:28:17.186Z"
   },
   {
     "id": "jorden",
@@ -290,13 +264,11 @@
     "description": "בניית אתר איקומרס בין לאומי, מרהיב ויוקרתי לכוכבת הרשת ירדן חכם למכירת תכשיטים.",
     "logoSrc": "/images/logos/jorden.webp",
     "logoWidth": 150,
-    "logoHeight": null,
     "siteUrl": "https://jordenjewelry.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/WhatsApp-Image-2020-10-05-at-17.22.44.jpeg",
-    "backgroundImageMobile": null,
-    "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:04:20",
-    "display_order": 19
+    "display_order": 19,
+    "created_at": "2026-04-24T11:28:17.253Z",
+    "updated_at": "2026-04-24T11:28:17.253Z"
   }
 ]
