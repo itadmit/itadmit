@@ -96,34 +96,32 @@ export default function ProjectSection({
             {project.description}
           </p>
 
-          {/* Buttons */}
+          {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
           <div className="flex flex-col gap-4 pt-8 items-start w-full max-w-3xl">
-            
-            {/* View Site Button */}
-            {project.siteUrl !== '#' && (
-              <a 
-                href={project.siteUrl} 
-                target="_blank" 
+            <div className="flex flex-wrap items-center gap-4">
+              {project.siteUrl !== '#' && (
+                <a
+                  href={project.siteUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 bg-transparent border-2 border-white text-white px-8 py-3 text-base font-medium hover:bg-white hover:text-black transition-colors rounded"
+                >
+                  <span>צפייה באתר</span>
+                  <ChevronLeft className="w-5 h-5" aria-hidden />
+                </a>
+              )}
+
+              <a
+                href={waHref}
+                target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-transparent border-2 border-white text-white px-8 py-3 text-base font-medium hover:bg-white hover:text-black transition-colors rounded"
+                className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3 text-base font-medium hover:bg-[#20BA5A] transition-colors rounded"
               >
-                <span>צפייה באתר</span>
-                <ChevronLeft className="w-5 h-5" />
+                <span>{LABEL_WHATSAPP}</span>
+                <MessageCircle className="w-5 h-5 shrink-0" aria-hidden />
               </a>
-            )}
+            </div>
 
-            {/* WhatsApp */}
-            <a
-              href={waHref}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3 text-base font-medium hover:bg-[#20BA5A] transition-colors rounded"
-            >
-              <span>{LABEL_WHATSAPP}</span>
-              <MessageCircle className="w-5 h-5 shrink-0" />
-            </a>
-
-            {/* בוט הצעת מחיר */}
             {onOpenQuoteBot ? (
               <button
                 type="button"
@@ -134,7 +132,6 @@ export default function ProjectSection({
                 <Sparkles className="w-5 h-5 shrink-0" aria-hidden />
               </button>
             ) : null}
-
           </div>
         </div>
 

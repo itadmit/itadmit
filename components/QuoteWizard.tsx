@@ -187,8 +187,8 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
       <div className="fixed bottom-6 left-6 z-50" dir="rtl">
         {/* בועית הודעה */}
         {showBubble && !isOpen && (
-          <div 
-            className="absolute bottom-full left-0 mb-3 bg-white text-gray-800 px-4 py-3 rounded-2xl shadow-xl animate-bounce-in max-w-[280px]"
+          <div
+            className="absolute bottom-full left-0 mb-3 max-w-[280px] rounded-2xl bg-white px-4 py-3 text-gray-800 shadow-xl animate-bounce-in"
             style={{
               animation: 'slideIn 0.5s ease-out',
             }}
@@ -197,7 +197,7 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
               <Coins className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
               <span>רוצים לדעת כמה עולה? בלי טלפונים!</span>
             </div>
-            <div className="absolute bottom-0 left-6 transform translate-y-1/2 rotate-45 w-3 h-3 bg-white"></div>
+            <div className="absolute bottom-0 left-6 h-3 w-3 translate-y-1/2 rotate-45 bg-white" />
           </div>
         )}
 
@@ -342,10 +342,11 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
                   {currentQuestion.type === 'text' && (
                     <div>
                       <textarea
+                        dir="rtl"
                         value={textAnswer}
                         onChange={(e) => setTextAnswer(e.target.value)}
                         placeholder="ספרו לנו..."
-                        className="w-full h-32 bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-white placeholder-gray-500 resize-none outline-none transition-colors"
+                        className="w-full h-32 bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-right text-white placeholder:text-right placeholder-gray-500 resize-none outline-none transition-colors"
                       />
                       {textAnswer.trim() && (
                         <button
@@ -380,34 +381,37 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
                     לאן לשלוח את הצעת המחיר?
                   </p>
 
-                  <div className="space-y-4">
+                  <div className="space-y-4" dir="rtl">
                     <input
                       type="text"
                       placeholder="שם מלא *"
                       value={leadInfo.name}
                       onChange={(e) => setLeadInfo({ ...leadInfo, name: e.target.value })}
-                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-white placeholder-gray-500 outline-none transition-colors"
+                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-right text-white placeholder:text-right placeholder-gray-500 outline-none transition-colors"
                     />
                     <input
                       type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
                       placeholder="טלפון *"
                       value={leadInfo.phone}
                       onChange={(e) => setLeadInfo({ ...leadInfo, phone: e.target.value })}
-                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-white placeholder-gray-500 outline-none transition-colors"
+                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-right text-white placeholder:text-right placeholder-gray-500 outline-none transition-colors"
                     />
                     <input
                       type="email"
+                      autoComplete="email"
                       placeholder="אימייל *"
                       value={leadInfo.email}
                       onChange={(e) => setLeadInfo({ ...leadInfo, email: e.target.value })}
-                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-white placeholder-gray-500 outline-none transition-colors"
+                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-right text-white placeholder:text-right placeholder-gray-500 outline-none transition-colors"
                     />
                     <input
                       type="text"
                       placeholder="שם החברה (אופציונלי)"
                       value={leadInfo.company}
                       onChange={(e) => setLeadInfo({ ...leadInfo, company: e.target.value })}
-                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-white placeholder-gray-500 outline-none transition-colors"
+                      className="w-full bg-gray-800/50 border border-gray-700 focus:border-emerald-500 rounded-xl p-4 text-right text-white placeholder:text-right placeholder-gray-500 outline-none transition-colors"
                     />
                   </div>
 
