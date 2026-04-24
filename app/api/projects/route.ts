@@ -7,7 +7,7 @@ import { cookies } from 'next/headers';
 // GET - קבלת כל הפרויקטים
 export async function GET() {
   try {
-    const projects = getProjects();
+    const projects = await getProjects();
     return NextResponse.json(projects, {
       headers: {
         'Cache-Control': 'no-store, must-revalidate',
@@ -21,7 +21,6 @@ export async function GET() {
 // POST - יצירת פרויקט חדש
 export async function POST(request: Request) {
   try {
-    // בדיקת אימות
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     if (!sessionToken || !verifySession(sessionToken)) {
@@ -29,13 +28,12 @@ export async function POST(request: Request) {
     }
 
     const project: ProjectData = await request.json();
-    
-    // בדיקת תקינות
+
     if (!project.id || !project.title) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
-    
-    addProject(project);
+
+    await addProject(project);
     return NextResponse.json({ success: true, project });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to create project' }, { status: 500 });
@@ -45,7 +43,6 @@ export async function POST(request: Request) {
 // PUT - עדכון פרויקט
 export async function PUT(request: Request) {
   try {
-    // בדיקת אימות
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     if (!sessionToken || !verifySession(sessionToken)) {
@@ -53,12 +50,12 @@ export async function PUT(request: Request) {
     }
 
     const { id, ...updates } = await request.json();
-    
+
     if (!id) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
-    
-    updateProject(id, updates);
+
+    await updateProject(id, updates);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
@@ -68,7 +65,6 @@ export async function PUT(request: Request) {
 // DELETE - מחיקת פרויקט
 export async function DELETE(request: Request) {
   try {
-    // בדיקת אימות
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     if (!sessionToken || !verifySession(sessionToken)) {
@@ -77,12 +73,12 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    
+
     if (!id) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
-    
-    deleteProject(id);
+
+    await deleteProject(id);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
@@ -92,7 +88,6 @@ export async function DELETE(request: Request) {
 // PATCH - עדכון סדר הפרויקטים
 export async function PATCH(request: Request) {
   try {
-    // בדיקת אימות
     const cookieStore = await cookies();
     const sessionToken = cookieStore.get('admin_session')?.value;
     if (!sessionToken || !verifySession(sessionToken)) {
@@ -100,15 +95,14 @@ export async function PATCH(request: Request) {
     }
 
     const { projectIds } = await request.json();
-    
+
     if (!Array.isArray(projectIds)) {
       return NextResponse.json({ error: 'projectIds must be an array' }, { status: 400 });
     }
-    
-    updateProjectsOrder(projectIds);
+
+    await updateProjectsOrder(projectIds);
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
   }
 }
-

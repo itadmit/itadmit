@@ -5,7 +5,7 @@ import { getSiteSettings, updateSiteSettings, type SiteSettings } from '@/lib/si
 
 export async function GET() {
   try {
-    const settings = getSiteSettings();
+    const settings = await getSiteSettings();
     return NextResponse.json(settings, {
       headers: {
         'Cache-Control': 'no-store, must-revalidate',
@@ -26,7 +26,7 @@ export async function PUT(request: Request) {
     }
 
     const body = (await request.json()) as Partial<SiteSettings>;
-    const updated = updateSiteSettings({
+    const updated = await updateSiteSettings({
       moreProjectsBackground: body.moreProjectsBackground,
       moreProjectsBackgroundMobile: body.moreProjectsBackgroundMobile,
       contactBackground: body.contactBackground,

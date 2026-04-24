@@ -1,4 +1,5 @@
 import { getDb } from './db';
+import { getNeon, isNeonEnabled } from './neon';
 import fs from 'fs';
 import path from 'path';
 
@@ -46,27 +47,42 @@ function writeJsonSettings(settings: SiteSettings): void {
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2), 'utf8');
 }
 
-/** קריאה מאוחדת: SQLite לוקאלי או קובץ JSON בפרודקשן */
-export function getSiteSettings(): SiteSettings {
-  const db = getDb();
+function rowsToSiteSettings(
+  rows: { key: string; value: string }[]
+): SiteSettings {
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  const more =
+    map.more_projects_background ?? SITE_SETTINGS_DEFAULTS.moreProjectsBackground;
+  const contact =
+    map.contact_background ?? SITE_SETTINGS_DEFAULTS.contactBackground;
+  return {
+    moreProjectsBackground: more,
+    moreProjectsBackgroundMobile:
+      map.more_projects_background_mobile || more,
+    contactBackground: contact,
+    contactBackgroundMobile: map.contact_background_mobile || contact,
+  };
+}
 
+/** קריאה מאוחדת: Neon → SQLite → JSON */
+export async function getSiteSettings(): Promise<SiteSettings> {
+  if (isNeonEnabled()) {
+    const sql = getNeon();
+    const rows = (await sql`SELECT key, value FROM site_settings`) as {
+      key: string;
+      value: string;
+    }[];
+    if (rows.length === 0) return { ...SITE_SETTINGS_DEFAULTS };
+    return rowsToSiteSettings(rows);
+  }
+
+  const db = getDb();
   if (db) {
     try {
       const rows = db
         .prepare(`SELECT key, value FROM site_settings`)
         .all() as { key: string; value: string }[];
-      const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
-      const more =
-        map.more_projects_background ?? SITE_SETTINGS_DEFAULTS.moreProjectsBackground;
-      const contact =
-        map.contact_background ?? SITE_SETTINGS_DEFAULTS.contactBackground;
-      return {
-        moreProjectsBackground: more,
-        moreProjectsBackgroundMobile:
-          map.more_projects_background_mobile || more,
-        contactBackground: contact,
-        contactBackgroundMobile: map.contact_background_mobile || contact,
-      };
+      return rowsToSiteSettings(rows);
     } catch {
       return readJsonSettings();
     }
@@ -75,8 +91,10 @@ export function getSiteSettings(): SiteSettings {
   return readJsonSettings();
 }
 
-export function updateSiteSettings(partial: Partial<SiteSettings>): SiteSettings {
-  const current = getSiteSettings();
+export async function updateSiteSettings(
+  partial: Partial<SiteSettings>
+): Promise<SiteSettings> {
+  const current = await getSiteSettings();
   const next: SiteSettings = {
     moreProjectsBackground:
       typeof partial.moreProjectsBackground === 'string'
@@ -96,8 +114,27 @@ export function updateSiteSettings(partial: Partial<SiteSettings>): SiteSettings
         : current.contactBackgroundMobile,
   };
 
-  const db = getDb();
+  if (isNeonEnabled()) {
+    const sql = getNeon();
+    const pairs: [string, string][] = [
+      ['more_projects_background', next.moreProjectsBackground],
+      [
+        'more_projects_background_mobile',
+        next.moreProjectsBackgroundMobile,
+      ],
+      ['contact_background', next.contactBackground],
+      ['contact_background_mobile', next.contactBackgroundMobile],
+    ];
+    for (const [key, value] of pairs) {
+      await sql`
+        INSERT INTO site_settings (key, value) VALUES (${key}, ${value})
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+      `;
+    }
+    return next;
+  }
 
+  const db = getDb();
   if (db) {
     const upsert = db.prepare(
       `INSERT OR REPLACE INTO site_settings (key, value) VALUES (?, ?)`

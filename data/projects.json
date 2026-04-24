@@ -39,9 +39,9 @@
     "siteUrl": "https://einavbooblil.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
     "backgroundImage": "/images/bg/einav-d.jpg",
-    "backgroundImageMobile": null,
+    "backgroundImageMobile": "/images/bg/einav-d.jpg",
     "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:41:13",
+    "updated_at": "2026-04-23 11:26:05",
     "display_order": 2
   },
   {
@@ -128,10 +128,10 @@
     "logoHeight": null,
     "siteUrl": "https://porthomedesign.com/",
     "whatsappText": "הצעת מחיר מהירה בקליק",
-    "backgroundImage": "/images/bg/82048963_high-4-600x800-1_jpg_92.jpg",
+    "backgroundImage": "/images/bg/82049624_high-3-1067x800-1.jpg",
     "backgroundImageMobile": "/images/bg/82048963_high-4-600x800-1_jpg_92.jpg",
     "created_at": "2025-12-12 14:34:25",
-    "updated_at": "2026-04-23 08:49:44",
+    "updated_at": "2026-04-23 11:26:31",
     "display_order": 8
   },
   {

@@ -5,11 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "tsx scripts/build-json-from-db.ts",
+    "db:init-neon": "tsx scripts/init-neon.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
     "@types/better-sqlite3": "^7.6.13",
     "better-sqlite3": "^12.5.0",
     "lucide-react": "^0.344.0",

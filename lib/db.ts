@@ -15,7 +15,10 @@ let db: Database.Database | null = null;
 
 // פונקציה לקבלת instance של DB (רק לוקאלית)
 export function getDb(): Database.Database | null {
-  // ב-Vercel (production) - נחזיר null כי SQLite לא עובד שם
+  if (process.env.DATABASE_URL?.trim()) {
+    return null;
+  }
+  // ב-Vercel (production) ללא DATABASE_URL — נופל ל-JSON בקוד אחר
   if (process.env.VERCEL) {
     return null;
   }
