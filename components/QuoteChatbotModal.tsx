@@ -652,7 +652,7 @@ export default function QuoteChatbotModal({
       />
 
       <div
-        className="relative flex h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[#efeae2] shadow-2xl ring-1 ring-black/10 sm:h-[min(680px,92vh)] sm:rounded-2xl"
+        className="relative flex h-[82vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[#efeae2] shadow-2xl ring-1 ring-black/10 sm:h-[min(600px,88vh)] sm:rounded-2xl"
         dir="rtl"
       >
         {/* Header — WhatsApp style */}
