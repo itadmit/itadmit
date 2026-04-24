@@ -3,6 +3,10 @@ import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { verifySession } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import {
+  safeUploadBasename,
+  validateImageBuffer,
+} from '@/lib/image-upload-guard';
 
 export async function POST(request: Request) {
   try {
@@ -36,9 +40,25 @@ export async function POST(request: Request) {
     // שמירת הקובץ
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    
-    // שמירת שם הקובץ המקורי (או יצירת שם ייחודי אם קיים)
-    const fileName = file.name;
+
+    const validated = validateImageBuffer(buffer);
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.reason }, { status: 400 });
+    }
+
+    const fileName = safeUploadBasename(file.name);
+    const ext = fileName.toLowerCase().match(/\.[a-z0-9]+$/i);
+    const allowedExt = /\.(jpe?g|png|gif|webp|svg)$/i;
+    if (!ext || !allowedExt.test(fileName)) {
+      return NextResponse.json(
+        {
+          error:
+            'סיומת קובץ לא נתמכת. השתמשו ב-.jpg, .png, .gif, .webp או .svg',
+        },
+        { status: 400 }
+      );
+    }
+
     const filePath = join(uploadDir, fileName);
 
     await writeFile(filePath, buffer);

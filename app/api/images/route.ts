@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   const publicDir = path.join(process.cwd(), 'public');
   const logosDir = path.join(publicDir, 'images', 'logos');

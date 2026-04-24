@@ -70,17 +70,17 @@ export default function ProjectSection({
       </div>
       
       {/* Content Container - על התמונה המוחשכת */}
-      <div className="relative z-10 h-full w-full flex flex-col items-start justify-center px-6 md:px-[18%]" dir="rtl">
+      <div className="relative z-10 h-full w-full flex flex-col items-start justify-center px-4 sm:px-5 md:px-[12%] lg:px-[14%]" dir="rtl">
         <div className="w-full flex flex-col items-start text-right space-y-6">
           
           {/* Logo - Top Right */}
-          <div className="mb-4 w-full">
+          <div className="mb-3 w-full">
             <Image 
               src={project.logoSrc}
               alt={`${project.title} Logo`}
-              width={Math.floor((project.logoWidth || 200) * 0.6)}
-              height={Math.floor((project.logoHeight || 100) * 0.6)}
-              className="h-auto w-auto max-h-20"
+              width={Math.floor((project.logoWidth || 200) * 0.52)}
+              height={Math.floor((project.logoHeight || 100) * 0.52)}
+              className="h-auto w-auto max-h-16"
               priority
               style={{ marginRight: 0 }}
             />
@@ -92,12 +92,12 @@ export default function ProjectSection({
           </h1>
 
           {/* Description */}
-          <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed max-w-3xl text-right w-full">
+          <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed max-w-4xl text-right w-full">
             {project.description}
           </p>
 
           {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
-          <div className="flex flex-col gap-4 pt-8 items-start w-full max-w-3xl">
+          <div className="flex flex-col gap-4 pt-8 items-start w-full max-w-4xl">
             <div className="flex flex-wrap items-center gap-4">
               {project.siteUrl !== '#' && (
                 <a

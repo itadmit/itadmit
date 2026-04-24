@@ -148,13 +148,30 @@ export default function AdminDashboard() {
   }, [authenticated]);
 
   const loadImages = () => {
-    fetch('/api/images')
-      .then(res => res.json())
-      .then(data => {
+    fetch('/api/images', { cache: 'no-store' })
+      .then(async (res) => {
+        if (!res.ok) {
+          const t = await res.text().catch(() => '');
+          console.error('Error loading images:', res.status, t.slice(0, 200));
+          setLogoFiles([]);
+          setBgFiles([]);
+          return null;
+        }
+        return res.json() as Promise<{
+          logos?: { name: string; path: string }[];
+          backgrounds?: { name: string; path: string }[];
+        }>;
+      })
+      .then((data) => {
+        if (!data) return;
         setLogoFiles(data.logos || []);
         setBgFiles(data.backgrounds || []);
       })
-      .catch(err => console.error('Error loading images:', err));
+      .catch((err) => {
+        console.error('Error loading images:', err);
+        setLogoFiles([]);
+        setBgFiles([]);
+      });
   };
 
   /** רשימת הקבצים במודל בחירת תמונה — לדסקטופ/מובייל מאוחדים לוגואים + רקעים */
@@ -194,7 +211,9 @@ export default function AdminDashboard() {
         
         alert(`הקובץ ${data.fileName} הועלה בהצלחה!`);
       } else {
-        alert('שגיאה בהעלאת הקובץ');
+        const msg =
+          typeof data?.error === 'string' ? data.error : 'שגיאה בהעלאת הקובץ';
+        alert(msg);
       }
     } catch (error) {
       console.error('Upload error:', error);
@@ -230,7 +249,9 @@ export default function AdminDashboard() {
           `הקובץ ${data.fileName} הועלה ושויך לרקע. אל תשכח ללחוץ "שמור רקעים".`
         );
       } else {
-        alert('שגיאה בהעלאת הקובץ');
+        const msg =
+          typeof data?.error === 'string' ? data.error : 'שגיאה בהעלאת הקובץ';
+        alert(msg);
       }
     } catch (error) {
       console.error('Upload error:', error);

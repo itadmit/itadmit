@@ -34,7 +34,7 @@ export interface Lead {
 export const defaultQuestions: Question[] = [
   {
     id: 'site-type',
-    question: 'מה אתם צריכים?',
+    question: 'במה אתם מעוניינים?',
     type: 'single-choice',
     isFirst: true,
     order: 1,

@@ -188,14 +188,16 @@ export default function QuoteWizard({ questions = defaultQuestions }: QuoteWizar
         {/* בועית הודעה */}
         {showBubble && !isOpen && (
           <div
-            className="absolute bottom-full left-0 mb-3 max-w-[280px] rounded-2xl bg-white px-4 py-3 text-gray-800 shadow-xl animate-bounce-in"
+            className="absolute bottom-full left-0 mb-3 w-max max-w-[min(100vw-2rem,352px)] rounded-2xl bg-white px-4 py-2.5 text-gray-800 shadow-xl animate-bounce-in"
             style={{
               animation: 'slideIn 0.5s ease-out',
             }}
           >
-            <div className="flex items-start gap-2 text-sm font-medium">
+            <div className="flex items-start gap-2 text-sm font-medium leading-snug">
               <Coins className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
-              <span>רוצים לדעת כמה עולה? בלי טלפונים!</span>
+              <span className="text-balance">
+                רוצים לדעת כמה עולה? בלי טלפונים!
+              </span>
             </div>
             <div className="absolute bottom-0 left-6 h-3 w-3 translate-y-1/2 rotate-45 bg-white" />
           </div>
