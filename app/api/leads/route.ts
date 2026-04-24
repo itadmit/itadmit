@@ -5,6 +5,8 @@ import {
   updateLeadById,
   deleteLeadById,
 } from '@/lib/leads-db';
+import { getAllQuestions } from '@/lib/questions-db';
+import { sendNewLeadEmail } from '@/lib/mailer';
 import type { Lead } from '@/lib/quote-wizard';
 
 export async function GET() {
@@ -37,6 +39,16 @@ export async function POST(request: NextRequest) {
     };
 
     await insertLead(newLead);
+
+    // התראת מייל — לא חוסמת את התגובה ללקוח
+    void (async () => {
+      try {
+        const questions = await getAllQuestions();
+        await sendNewLeadEmail({ lead: newLead, questions });
+      } catch (err) {
+        console.error('Lead email notification failed:', err);
+      }
+    })();
 
     return NextResponse.json({ success: true, lead: newLead });
   } catch (error) {
