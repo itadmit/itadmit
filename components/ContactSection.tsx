@@ -4,10 +4,17 @@ import { Phone, Mail, Instagram, Facebook, MessageCircle, Send } from 'lucide-re
 import { useState, useRef } from 'react';
 import { useSectionParallax } from '@/hooks/useSectionParallax';
 
-const bgLayerStyle = {
+const bgLayerStyleDesktop = {
   backgroundSize: '100% auto' as const,
   backgroundPosition: 'center top' as const,
   backgroundRepeat: 'no-repeat' as const,
+  transformOrigin: 'center top' as const,
+};
+
+const bgLayerStyleMobile = {
+  backgroundSize: '100% auto' as const,
+  backgroundPosition: 'center top' as const,
+  backgroundRepeat: 'repeat-y' as const,
   transformOrigin: 'center top' as const,
 };
 
@@ -55,7 +62,7 @@ export default function ContactSection({
           ref={desktopBgRef}
           className="absolute inset-0 hidden will-change-transform md:block"
           style={{
-            ...bgLayerStyle,
+            ...bgLayerStyleDesktop,
             backgroundImage: `url(${backgroundSrc})`,
           }}
         />
@@ -63,7 +70,7 @@ export default function ContactSection({
           ref={mobileBgRef}
           className="absolute inset-0 block will-change-transform md:hidden"
           style={{
-            ...bgLayerStyle,
+            ...bgLayerStyleMobile,
             backgroundImage: `url(${mobileSrc})`,
           }}
         />
