@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import type { Question, Lead } from '@/lib/quote-wizard';
 import { defaultQuestions, getFirstQuestion, getNextQuestion } from '@/lib/quote-wizard';
+import { gaEvent, GA_EVENTS } from '@/lib/gtag';
 
 const WHATSAPP_PHONE = '972542284283';
 const AGENT_NAME = 'תדמית אינטראקטיב';
@@ -283,6 +284,8 @@ export default function QuoteChatbotModal({
     setLines([]);
     setIsTyping(false);
 
+    gaEvent(GA_EVENTS.chatOpen);
+
     let cancelled = false;
 
     (async () => {
@@ -537,14 +540,21 @@ export default function QuoteChatbotModal({
         body: JSON.stringify(lead),
       });
       if (!res.ok) throw new Error('fail');
+      gaEvent(GA_EVENTS.leadSubmit, {
+        currency: 'ILS',
+        has_company: Boolean(final.company),
+      });
       setPhase('success');
       setContactField(null);
+      const firstName = (final.name || '').split(' ')[0];
       withTyping(TYPING_MS.short, () => {
         pushBot(
-          'קיבלנו את הפרטים! 🎉 כבר רצים להכין לכם הצעת מחיר — נחזור אליכם בהקדם.'
+          `תודה רבה${firstName ? `, ${firstName}` : ''}! 🎉 הפרטים שלכם התקבלו אצלנו בהצלחה.`
         );
-        withTyping(TYPING_MS.short, () => {
-          pushBot('רוצים לדבר ישירות? אפשר לפתוח וואטסאפ מהכפתור למטה ⬇️');
+        withTyping(TYPING_MS.medium, () => {
+          pushBot(
+            'אנחנו כבר מתחילים להכין לכם הצעת מחיר ונחזור אליכם בהקדם האפשרי 🙌'
+          );
         });
       });
     } catch {
@@ -739,6 +749,15 @@ export default function QuoteChatbotModal({
             })}
 
             {isTyping && <TypingBubble />}
+
+            {phase === 'success' && (
+              <div className="mt-4 flex justify-center">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#008069] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_4px_14px_-4px_rgba(0,128,105,0.55)]">
+                  <CheckCheck className="h-4 w-4" aria-hidden />
+                  הפרטים שלכם נשלחו בהצלחה
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Choice buttons inside chat area (like WhatsApp interactive buttons) */}
@@ -808,22 +827,39 @@ export default function QuoteChatbotModal({
         {/* Footer input — WhatsApp input bar */}
         <div className="shrink-0 bg-[#f0f2f5] px-2 py-2 sm:px-3 sm:py-2.5">
           {phase === 'success' && (
-            <div className="mb-2 space-y-2">
+            <div className="space-y-2.5 pt-0.5">
+              <p className="text-center text-[13px] leading-snug text-[#54656f]">
+                אם אתם עדיין מעוניינים לדבר בוואטסאפ ניתן ללחוץ על הכפתור מטה
+              </p>
               <a
                 href={waUrl(buildWhatsAppSummary())}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1fbd58]"
+                onClick={() => gaEvent(GA_EVENTS.whatsappClick)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#1fbd58]"
               >
                 <svg viewBox="0 0 32 32" className="h-4 w-4 fill-current" aria-hidden>
                   <path d="M16 3a13 13 0 0 0-11.15 19.7L3 29l6.46-1.78A13 13 0 1 0 16 3zm0 23.7a10.7 10.7 0 0 1-5.45-1.48l-.39-.23-3.84 1.06 1.03-3.74-.25-.4A10.68 10.68 0 1 1 16 26.7zm6.15-8a15 15 0 0 1-1.45-.54c-.19-.09-.33-.13-.47.13s-.54.68-.66.83-.25.17-.47.06a8.68 8.68 0 0 1-2.54-1.57 9.57 9.57 0 0 1-1.77-2.2c-.19-.33 0-.5.14-.66s.33-.36.5-.54a2.25 2.25 0 0 0 .33-.55.6.6 0 0 0 0-.58c-.09-.18-.47-1.14-.65-1.56s-.35-.36-.47-.37l-.4 0a.78.78 0 0 0-.56.26 2.35 2.35 0 0 0-.73 1.76 4.08 4.08 0 0 0 .85 2.16 9.37 9.37 0 0 0 3.58 3.58 4.52 4.52 0 0 0 2.38.87 2.2 2.2 0 0 0 1.45-.57 2 2 0 0 0 .46-1.24c.05-.23.05-.43 0-.48s-.17-.08-.35-.17z" />
                 </svg>
-                שליחה בוואטסאפ (עם כל הפרטים)
+                המשך שיחה בוואטסאפ
+              </a>
+              <div className="flex items-center gap-3 text-[12px] text-[#8696a0]">
+                <span className="h-px flex-1 bg-[#dadce0]" />
+                <span>או לחייג</span>
+                <span className="h-px flex-1 bg-[#dadce0]" />
+              </div>
+              <a
+                href="tel:0542284283"
+                onClick={() => gaEvent(GA_EVENTS.callClick)}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#008069] py-3 text-[15px] font-semibold text-white shadow-sm transition hover:bg-[#026a58]"
+              >
+                <Phone className="h-4 w-4" aria-hidden />
+                חייג עכשיו 054-228-4283
               </a>
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full rounded-full border border-[#dadce0] bg-white py-2.5 text-sm text-[#3b4a54] hover:bg-[#f7f8fa]"
+                className="w-full rounded-full border border-[#dadce0] bg-white py-2.5 text-[13px] text-[#3b4a54] hover:bg-[#f7f8fa]"
               >
                 סגירה
               </button>
@@ -914,10 +950,10 @@ function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
   const isUser = role === 'user';
   return (
     <div
-      className={`flex ${isUser ? 'justify-start' : 'justify-end'} ${grouped ? 'mt-0.5' : 'mt-1.5'}`}
+      className={`flex ${isUser ? 'justify-start' : 'justify-end'} ${grouped ? 'mt-1' : 'mt-2.5'}`}
     >
       <div
-        className={`relative max-w-[82%] px-2.5 py-1.5 pl-10 pr-2.5 text-[14.5px] leading-[1.35] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
+        className={`relative max-w-[82%] px-3 pt-2 pb-[22px] text-[14.5px] leading-[1.4] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
           isUser
             ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
             : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
@@ -926,9 +962,7 @@ function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
         {!grouped && (
           <span
             className={`absolute bottom-0 h-3 w-3 ${
-              isUser
-                ? 'right-[-6px]'
-                : 'left-[-6px]'
+              isUser ? 'right-[-6px]' : 'left-[-6px]'
             }`}
             aria-hidden
           >
@@ -944,7 +978,7 @@ function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
         <span className="block whitespace-pre-wrap break-words text-right">
           {text}
         </span>
-        <span className="pointer-events-none absolute bottom-[3px] left-2 flex items-center gap-1 text-[10.5px] leading-none text-[#667781]">
+        <span className="pointer-events-none absolute bottom-[4px] left-2.5 flex items-center gap-1 text-[10.5px] leading-none text-[#667781]">
           <span>{formatTime(ts)}</span>
           {isUser && <StatusTicks status={status} />}
         </span>

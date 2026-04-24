@@ -177,7 +177,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const gaId = process.env.NEXT_PUBLIC_GA_ID;
+  const gaId = process.env.NEXT_PUBLIC_GA_ID || "G-R3VPX1W8BL";
   return (
     <html lang="he" dir="rtl" className="m-0 p-0">
       <head>
@@ -198,8 +198,12 @@ export default function RootLayout({
               {`
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){dataLayer.push(arguments);}
+                window.gtag = gtag;
                 gtag('js', new Date());
-                gtag('config', '${gaId}', { anonymize_ip: true });
+                gtag('config', '${gaId}', {
+                  anonymize_ip: true,
+                  page_path: window.location.pathname + window.location.search,
+                });
               `}
             </Script>
           </>
