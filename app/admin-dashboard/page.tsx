@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { ProjectData } from '@/components/ProjectSection';
 import { Copy, Trash2, Plus, Save, X, ImageIcon, Check } from 'lucide-react';
 import AdminShell from '@/components/admin/AdminShell';
+import TestEmailButton from '@/components/admin/TestEmailButton';
 
 // טיפוס למודל בחירת תמונה
 type MediaModalType = 'logo' | 'desktop' | 'mobile' | null;
@@ -769,6 +770,18 @@ export default function AdminDashboard() {
                 בחר פרויקט לעריכה
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.035] p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-semibold">התראות מייל על ליד חדש</h2>
+              <p className="mt-1 text-[13px] text-white/55">
+                שליחת מייל בדיקה — כדי לוודא שמפתח Resend וכתובת השולח מוגדרים כראוי.
+              </p>
+            </div>
+            <TestEmailButton />
           </div>
         </div>
 

@@ -71,14 +71,24 @@ interface SendNewLeadArgs {
   questions: Question[];
 }
 
+export interface MailerResult {
+  ok: boolean;
+  skipped?: string;
+  messageId?: string;
+  errorName?: string;
+  errorMessage?: string;
+  to?: string;
+  from?: string;
+}
+
 export async function sendNewLeadEmail({
   lead,
   questions,
-}: SendNewLeadArgs): Promise<void> {
+}: SendNewLeadArgs): Promise<MailerResult> {
   const resend = client();
   if (!resend) {
     console.warn('[mailer] RESEND_API_KEY missing — skipping email');
-    return;
+    return { ok: false, skipped: 'RESEND_API_KEY not set on this environment' };
   }
 
   const to = process.env.LEAD_NOTIFY_EMAIL || 'itadmit@gmail.com';
@@ -164,7 +174,7 @@ export async function sendNewLeadEmail({
     .join('\n');
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from,
       to: [to],
       subject,
@@ -172,7 +182,63 @@ export async function sendNewLeadEmail({
       text,
       replyTo: lead.email || undefined,
     });
+    if (error) {
+      console.error('[mailer] Resend rejected send:', error);
+      return {
+        ok: false,
+        to,
+        from,
+        errorName: error.name,
+        errorMessage: error.message,
+      };
+    }
+    console.log('[mailer] sent lead email', { id: data?.id, to });
+    return { ok: true, messageId: data?.id, to, from };
   } catch (err) {
-    console.error('[mailer] failed to send lead email', err);
+    console.error('[mailer] threw while sending:', err);
+    return {
+      ok: false,
+      to,
+      from,
+      errorName: err instanceof Error ? err.name : 'UnknownError',
+      errorMessage: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+/** שליחת מייל בדיקה קצר — לשימוש ב-/api/admin/test-email */
+export async function sendTestEmail(): Promise<MailerResult> {
+  const resend = client();
+  if (!resend) {
+    return { ok: false, skipped: 'RESEND_API_KEY not set on this environment' };
+  }
+  const to = process.env.LEAD_NOTIFY_EMAIL || 'itadmit@gmail.com';
+  const from = process.env.EMAIL_FROM || 'HotelX <hello@hotelx.app>';
+  try {
+    const { data, error } = await resend.emails.send({
+      from,
+      to: [to],
+      subject: '✅ בדיקת מייל מתדמית אינטראקטיב',
+      html: '<p>זה מייל בדיקה. אם הגיע — ההגדרות תקינות.</p>',
+      text: 'זה מייל בדיקה. אם הגיע — ההגדרות תקינות.',
+    });
+    if (error) {
+      return {
+        ok: false,
+        to,
+        from,
+        errorName: error.name,
+        errorMessage: error.message,
+      };
+    }
+    return { ok: true, messageId: data?.id, to, from };
+  } catch (err) {
+    return {
+      ok: false,
+      to,
+      from,
+      errorName: err instanceof Error ? err.name : 'UnknownError',
+      errorMessage: err instanceof Error ? err.message : String(err),
+    };
   }
 }
