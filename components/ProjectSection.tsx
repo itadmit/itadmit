@@ -115,7 +115,7 @@ export default function ProjectSection({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] mx-2.5 md:mx-0 md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <MessageCircle className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
                 <span className="truncate">{LABEL_WHATSAPP}</span>
