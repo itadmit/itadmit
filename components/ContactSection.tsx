@@ -52,7 +52,7 @@ export default function ContactSection({
     <section
       ref={sectionRef}
       id="contact"
-      className="relative h-screen w-screen snap-start snap-always overflow-y-auto m-0 p-0 text-white"
+      className="relative h-screen w-screen snap-start snap-always overflow-hidden m-0 p-0 text-white"
     >
       <div
         className="pointer-events-none absolute inset-0 z-0 overflow-hidden bg-black"
@@ -81,7 +81,7 @@ export default function ContactSection({
         />
       </div>
 
-      <div className="relative z-10 flex min-h-full items-center justify-center py-20 px-4">
+      <div className="relative z-10 h-full overflow-y-auto flex items-start justify-center py-20 px-4">
       <div className="container mx-auto max-w-5xl text-center">
         
         {/* Title */}
