@@ -71,10 +71,10 @@ export default function ProjectSection({
       
       {/* Content Container - על התמונה המוחשכת */}
       <div className="relative z-10 h-full w-full flex flex-col items-start justify-center px-4 sm:px-5 md:px-[12%] lg:px-[14%]" dir="rtl">
-        <div className="w-full flex flex-col items-start text-right space-y-3 md:space-y-6">
+        <div className="w-full flex flex-col items-start text-right space-y-5 md:space-y-6">
 
           {/* Logo - Top Right */}
-          <div className="mb-0 w-full md:mb-3">
+          <div className="mb-1 w-full md:mb-3">
             <Image
               src={project.logoSrc}
               alt={`${project.title} Logo`}
@@ -97,7 +97,7 @@ export default function ProjectSection({
           </p>
 
           {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
-          <div className="flex flex-col gap-3 pt-2 md:gap-4 md:pt-8 items-start w-full max-w-4xl">
+          <div className="flex flex-col gap-3 pt-4 md:gap-4 md:pt-8 items-start w-full max-w-4xl">
             <div className="flex flex-nowrap items-center gap-2 md:flex-wrap md:gap-4">
               {project.siteUrl !== '#' && (
                 <a
