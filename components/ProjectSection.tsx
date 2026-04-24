@@ -117,8 +117,8 @@ export default function ProjectSection({
                 rel="noopener noreferrer"
                 className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
               >
-                <span className="truncate">{LABEL_WHATSAPP}</span>
                 <MessageCircle className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
+                <span className="truncate">{LABEL_WHATSAPP}</span>
               </a>
             </div>
 
@@ -128,8 +128,8 @@ export default function ProjectSection({
                 onClick={() => onOpenQuoteBot()}
                 className="inline-flex items-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-right text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:gap-2 md:px-8 md:py-3 md:text-base"
               >
-                <span>{LABEL_BOT}</span>
                 <Sparkles className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
+                <span>{LABEL_BOT}</span>
               </button>
             ) : null}
           </div>
