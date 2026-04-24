@@ -1,41 +1,55 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { del } from '@vercel/blob';
+
+export const runtime = 'nodejs';
 
 export async function DELETE(request: NextRequest) {
   try {
     const { imagePath } = await request.json();
 
-    if (!imagePath) {
+    if (!imagePath || typeof imagePath !== 'string') {
       return NextResponse.json({ error: 'נדרש נתיב לתמונה' }, { status: 400 });
     }
 
-    // וידוא שהנתיב הוא בתיקיית התמונות בלבד (אבטחה)
+    // Blob URL — מחיקה דרך Vercel Blob API
+    if (/^https?:\/\//i.test(imagePath)) {
+      if (!process.env.BLOB_READ_WRITE_TOKEN) {
+        return NextResponse.json(
+          { error: 'לא מוגדר טוקן של Vercel Blob' },
+          { status: 500 }
+        );
+      }
+      await del(imagePath);
+      return NextResponse.json({
+        success: true,
+        message: 'התמונה נמחקה בהצלחה',
+        deletedPath: imagePath,
+      });
+    }
+
+    // מחיקה מהפילסיסטם המקומי
     const normalizedPath = path.normalize(imagePath);
     if (!normalizedPath.startsWith('/images/')) {
       return NextResponse.json({ error: 'נתיב לא חוקי' }, { status: 400 });
     }
 
-    // בניית הנתיב המלא
     const fullPath = path.join(process.cwd(), 'public', normalizedPath);
-
-    // בדיקה שהקובץ קיים
     if (!fs.existsSync(fullPath)) {
       return NextResponse.json({ error: 'הקובץ לא נמצא' }, { status: 404 });
     }
 
-    // מחיקת הקובץ
     fs.unlinkSync(fullPath);
-
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'התמונה נמחקה בהצלחה',
-      deletedPath: imagePath 
+      deletedPath: imagePath,
     });
-
   } catch (error) {
     console.error('Error deleting image:', error);
-    return NextResponse.json({ error: 'שגיאה במחיקת התמונה' }, { status: 500 });
+    const msg =
+      error instanceof Error ? error.message : 'שגיאה במחיקת התמונה';
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
-
