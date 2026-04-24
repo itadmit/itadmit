@@ -18,8 +18,8 @@ export default function QuoteWizard({ onOpen }: QuoteWizardProps) {
 
   useEffect(() => {
     if (bubbleDismissed) return;
-    const show = window.setTimeout(() => setShowBubble(true), 2500);
-    const hide = window.setTimeout(() => setShowBubble(false), 15000);
+    const show = window.setTimeout(() => setShowBubble(true), 9000);
+    const hide = window.setTimeout(() => setShowBubble(false), 22000);
     hideRef.current = hide;
     return () => {
       window.clearTimeout(show);

@@ -12,9 +12,17 @@ interface CircularTimerProps {
 export default function CircularTimer({ duration = 4000, onComplete, resetKey }: CircularTimerProps) {
   const [timeLeft, setTimeLeft] = useState(duration);
   const [isPaused, setIsPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(Date.now());
   const hasCalledComplete = useRef(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   // Reset timer when resetKey changes
   useEffect(() => {
@@ -89,8 +97,8 @@ export default function CircularTimer({ duration = 4000, onComplete, resetKey }:
   const seconds = Math.ceil(timeLeft / 1000);
   
   // SVG circle parameters
-  const size = 60;
-  const strokeWidth = 4;
+  const size = isMobile ? 40 : 60;
+  const strokeWidth = isMobile ? 3 : 4;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   const offset = circumference - (progress / 100) * circumference;
@@ -98,7 +106,7 @@ export default function CircularTimer({ duration = 4000, onComplete, resetKey }:
   return (
     <button
       onClick={handleTogglePause}
-      className="fixed bottom-10 right-10 z-50 flex items-center justify-center transition-all hover:scale-110"
+      className="fixed bottom-4 right-4 z-50 flex items-center justify-center transition-all hover:scale-110 md:bottom-10 md:right-10"
       aria-label={isPaused ? 'Play' : 'Pause'}
     >
       <svg width={size} height={size} className="transform -rotate-90">
@@ -131,9 +139,9 @@ export default function CircularTimer({ duration = 4000, onComplete, resetKey }:
       {/* Center content */}
       <div className="absolute inset-0 flex items-center justify-center">
         {isPaused ? (
-          <Play className="w-5 h-5 text-white" fill="white" />
+          <Play className="h-3.5 w-3.5 text-white md:h-5 md:w-5" fill="white" />
         ) : (
-          <span className="text-white font-bold text-lg">{seconds}</span>
+          <span className="text-[12px] font-bold text-white md:text-lg">{seconds}</span>
         )}
       </div>
     </button>

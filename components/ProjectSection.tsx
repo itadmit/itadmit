@@ -71,43 +71,43 @@ export default function ProjectSection({
       
       {/* Content Container - על התמונה המוחשכת */}
       <div className="relative z-10 h-full w-full flex flex-col items-start justify-center px-4 sm:px-5 md:px-[12%] lg:px-[14%]" dir="rtl">
-        <div className="w-full flex flex-col items-start text-right space-y-6">
-          
+        <div className="w-full flex flex-col items-start text-right space-y-3 md:space-y-6">
+
           {/* Logo - Top Right */}
-          <div className="mb-3 w-full">
-            <Image 
+          <div className="mb-0 w-full md:mb-3">
+            <Image
               src={project.logoSrc}
               alt={`${project.title} Logo`}
               width={Math.floor((project.logoWidth || 200) * 0.52)}
               height={Math.floor((project.logoHeight || 100) * 0.52)}
-              className="h-auto w-auto max-h-16"
+              className="h-auto w-auto max-h-10 md:max-h-16"
               priority
               style={{ marginRight: 0 }}
             />
           </div>
 
           {/* Title */}
-          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-tight text-right w-full">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white leading-[1.1] md:leading-tight text-right w-full">
             {project.title}
           </h1>
 
           {/* Description */}
-          <p className="text-base md:text-lg lg:text-xl text-white leading-relaxed max-w-4xl text-right w-full">
+          <p className="text-sm leading-relaxed md:text-lg lg:text-xl text-white max-w-4xl text-right w-full">
             {project.description}
           </p>
 
           {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
-          <div className="flex flex-col gap-4 pt-8 items-start w-full max-w-4xl">
-            <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-col gap-3 pt-2 md:gap-4 md:pt-8 items-start w-full max-w-4xl">
+            <div className="flex flex-nowrap items-center gap-2 md:flex-wrap md:gap-4">
               {project.siteUrl !== '#' && (
                 <a
                   href={project.siteUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-transparent border-2 border-white text-white px-8 py-3 text-base font-medium hover:bg-white hover:text-black transition-colors rounded"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-white hover:text-black md:gap-2 md:px-8 md:py-3 md:text-base"
                 >
                   <span>צפייה באתר</span>
-                  <ChevronLeft className="w-5 h-5" aria-hidden />
+                  <ChevronLeft className="h-4 w-4 md:h-5 md:w-5" aria-hidden />
                 </a>
               )}
 
@@ -115,10 +115,10 @@ export default function ProjectSection({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-[#25D366] text-white px-8 py-3 text-base font-medium hover:bg-[#20BA5A] transition-colors rounded"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
               >
-                <span>{LABEL_WHATSAPP}</span>
-                <MessageCircle className="w-5 h-5 shrink-0" aria-hidden />
+                <span className="truncate">{LABEL_WHATSAPP}</span>
+                <MessageCircle className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
               </a>
             </div>
 
@@ -126,10 +126,10 @@ export default function ProjectSection({
               <button
                 type="button"
                 onClick={() => onOpenQuoteBot()}
-                className="inline-flex items-center gap-2 border-2 border-white bg-transparent text-white px-8 py-3 text-sm md:text-base font-medium hover:bg-white hover:text-black transition-colors rounded text-right"
+                className="inline-flex items-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-right text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <span>{LABEL_BOT}</span>
-                <Sparkles className="w-5 h-5 shrink-0" aria-hidden />
+                <Sparkles className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
               </button>
             ) : null}
           </div>

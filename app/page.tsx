@@ -366,12 +366,12 @@ export default function Home() {
       <MenuPopup isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       
       {/* Navigation Dots - Left Side */}
-      <div className="fixed left-4 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-4 md:left-8">
+      <div className="fixed left-2.5 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-2.5 md:left-8 md:gap-4">
         {displayProjects.map((project, index) => (
           <div key={project.id} className="relative group">
             <a
               href={`#${project.id}`}
-              className={`w-3 h-3 rounded-full transition-all duration-300 block ${
+              className={`block h-2 w-2 rounded-full transition-all duration-300 md:h-3 md:w-3 ${
                 activeSection === index 
                   ? 'bg-white scale-150' 
                   : 'bg-white/60 hover:bg-white'
@@ -389,7 +389,7 @@ export default function Home() {
         <div className="relative group">
           <a
             href="#more-projects"
-            className={`w-3 h-3 rounded-full transition-all duration-300 block ${
+            className={`block h-2 w-2 rounded-full transition-all duration-300 md:h-3 md:w-3 ${
               activeSection === displayProjects.length 
                 ? 'bg-white scale-150' 
                 : 'bg-white/60 hover:bg-white'
@@ -406,7 +406,7 @@ export default function Home() {
         <div className="relative group">
           <a
             href="#contact"
-            className={`w-3 h-3 rounded-full transition-all duration-300 block ${
+            className={`block h-2 w-2 rounded-full transition-all duration-300 md:h-3 md:w-3 ${
               activeSection === displayProjects.length + 1 
                 ? 'bg-white scale-150' 
                 : 'bg-white/60 hover:bg-white'
