@@ -752,7 +752,7 @@ export default function QuoteChatbotModal({
 
             {phase === 'success' && (
               <>
-                <div className="mt-4 flex justify-center">
+                <div className="mt-7 flex justify-center">
                   <span className="inline-flex items-center gap-2 rounded-full bg-[#008069] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_4px_14px_-4px_rgba(0,128,105,0.55)]">
                     <CheckCheck className="h-4 w-4" aria-hidden />
                     הפרטים שלכם נשלחו בהצלחה
