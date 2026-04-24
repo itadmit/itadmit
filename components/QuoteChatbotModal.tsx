@@ -955,22 +955,22 @@ function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
       <div
         className={`relative max-w-[82%] px-[9px] py-[6px] text-[14.5px] leading-[1.35] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
           isUser
-            ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
-            : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
+            ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
+            : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
         }`}
       >
         {!grouped && (
           <span
             className={`absolute bottom-0 h-3 w-3 ${
-              isUser ? 'left-[-6px]' : 'right-[-6px]'
+              isUser ? 'right-[-6px]' : 'left-[-6px]'
             }`}
             aria-hidden
           >
             <svg viewBox="0 0 12 12" className="h-3 w-3">
               {isUser ? (
-                <path d="M12 0 L12 12 L0 12 Z" fill="#d9fdd3" />
+                <path d="M0 0 L0 12 L12 12 Z" fill="#d9fdd3" />
               ) : (
-                <path d="M0 0 L0 12 L12 12 Z" fill="#ffffff" />
+                <path d="M12 0 L12 12 L0 12 Z" fill="#ffffff" />
               )}
             </svg>
           </span>
@@ -1009,13 +1009,13 @@ function StatusTicks({ status }: { status?: MsgStatus }) {
 function TypingBubble() {
   return (
     <div className="mt-1.5 flex justify-end">
-      <div className="relative rounded-2xl rounded-br-sm bg-white px-3 py-2.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]">
+      <div className="relative rounded-2xl rounded-bl-sm bg-white px-3 py-2.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]">
         <span
-          className="absolute bottom-0 right-[-6px] h-3 w-3"
+          className="absolute bottom-0 left-[-6px] h-3 w-3"
           aria-hidden
         >
           <svg viewBox="0 0 12 12" className="h-3 w-3">
-            <path d="M0 0 L0 12 L12 12 Z" fill="#ffffff" />
+            <path d="M12 0 L12 12 L0 12 Z" fill="#ffffff" />
           </svg>
         </span>
         <span className="flex items-center gap-1" aria-hidden>
