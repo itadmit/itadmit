@@ -94,7 +94,7 @@ export default function MoreProjectsSection({
             ) : (
               <a
                 href={whatsappHref(
-                  'שלום, הגעתי מהאתר ואשמח לקבל הצעת מחיר דרך הצ׳אט בוט שלכם.'
+                  'הצעת מחיר מהירה — שלום, הגעתי מהאתר ואשמח לקבל הצעת מחיר דרך הצ׳אט בוט שלכם.'
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -106,7 +106,7 @@ export default function MoreProjectsSection({
             )}
 
             <a
-              href={whatsappHref('שלום, הגעתי מהאתר ואשמח לקבל הצעת מחיר בוואטסאפ.')}
+              href={whatsappHref('הצעת מחיר מהירה — שלום, הגעתי מהאתר ואשמח לקבל הצעת מחיר בוואטסאפ.')}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-transparent border-2 border-white text-white px-8 py-3 text-base font-medium hover:bg-white hover:text-black transition-colors"

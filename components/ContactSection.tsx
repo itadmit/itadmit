@@ -1,6 +1,6 @@
 'use client';
 
-import { Phone, Mail, Instagram, Facebook, MessageCircle, Send } from 'lucide-react';
+import { Phone, Mail, Instagram, Facebook, MessageCircle, Navigation } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { useSectionParallax } from '@/hooks/useSectionParallax';
 
@@ -95,23 +95,23 @@ export default function ContactSection({
         </div>
 
         {/* Quick Action Buttons */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center mb-12">
-          <a 
-            href="https://api.whatsapp.com/send/?phone=972542284283&text=הצעת%20מחיר%20מהירה%20בקליק"
+        <div className="mb-12 flex flex-row flex-nowrap justify-center gap-2 md:gap-4">
+          <a
+            href="https://api.whatsapp.com/send/?phone=972542284283&text=%D7%94%D7%A6%D7%A2%D7%AA%20%D7%9E%D7%97%D7%99%D7%A8%20%D7%9E%D7%94%D7%99%D7%A8%D7%94"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-3 bg-green-500 text-white px-8 py-4 text-base font-medium hover:bg-green-600 transition-colors"
+            className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded bg-green-500 px-3 py-3 text-[13px] font-medium text-white transition-colors hover:bg-green-600 md:gap-3 md:px-8 md:py-4 md:text-base"
           >
-            <MessageCircle className="w-6 h-6" />
-            <span>קבלת הצעת מחיר מהירה ב-Whatsapp</span>
+            <MessageCircle className="h-4 w-4 shrink-0 md:h-6 md:w-6" />
+            <span className="truncate">הצעת מחיר מהירה בוואטסאפ</span>
           </a>
-          
-          <a 
+
+          <a
             href="tel:+972542284283"
-            className="inline-flex items-center gap-3 bg-blue-600 text-white px-8 py-4 text-base font-medium hover:bg-blue-700 transition-colors"
+            className="inline-flex min-w-0 flex-1 items-center justify-center gap-2 rounded bg-blue-600 px-3 py-3 text-[13px] font-medium text-white transition-colors hover:bg-blue-700 md:gap-3 md:px-8 md:py-4 md:text-base"
           >
-            <Phone className="w-6 h-6" />
-            <span>חיוג מהיר 0542284283</span>
+            <Phone className="h-4 w-4 shrink-0 md:h-6 md:w-6" />
+            <span className="truncate">חיוג 054-228-4283</span>
           </a>
         </div>
 
@@ -152,20 +152,20 @@ export default function ContactSection({
               className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg focus:ring-2 focus:ring-white focus:outline-none transition-all text-right text-white placeholder-white/60 resize-none"
             />
             
-            <button 
+            <button
               type="submit"
-              className="w-full bg-white text-black font-bold text-xl py-4 rounded-lg hover:bg-white/90 transition-all flex items-center justify-center gap-2 group"
+              className="group flex w-full items-center justify-center gap-2 rounded-lg bg-white px-4 py-3 text-sm font-bold leading-tight text-black transition-all hover:bg-white/90 md:gap-3 md:px-6 md:py-4 md:text-xl"
             >
-              <span>אני מפעם, אשאיר פרטים ותחזרו אליי במייל</span>
-              <Mail className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Mail className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1 md:h-5 md:w-5" />
+              <span>אני מעדיף, אשאיר פרטים ותחזרו אליי במייל</span>
             </button>
           </form>
         </div>
 
         {/* Social Links */}
         <div className="flex flex-wrap justify-center gap-6 mb-8">
-          <a 
-            href="https://api.whatsapp.com/send/?phone=972542284283&text=שלום%20הגעתי%20דרך%20האתר%20ואני%20מעוניין%20לקבל%20עוד%20פרטים..."
+          <a
+            href="https://api.whatsapp.com/send/?phone=972542284283&text=%D7%94%D7%A6%D7%A2%D7%AA%20%D7%9E%D7%97%D7%99%D7%A8%20%D7%9E%D7%94%D7%99%D7%A8%D7%94"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center gap-2 text-white hover:text-green-400 transition-colors"
@@ -205,13 +205,13 @@ export default function ContactSection({
             <Phone className="w-8 h-8" />
             <span className="text-sm">טלפון</span>
           </a>
-          <a 
-            href="https://ul.waze.com/ul?place=ChIJJ0giiiS3AhURsiv2gKFrQP0&ll=31.90124590%2C34.78958690&navigate=yes&utm_campaign=default&utm_source=waze_website&utm_medium=lm_share_location" 
+          <a
+            href="https://ul.waze.com/ul?place=ChIJJ0giiiS3AhURsiv2gKFrQP0&ll=31.90124590%2C34.78958690&navigate=yes&utm_campaign=default&utm_source=waze_website&utm_medium=lm_share_location"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center gap-2 text-white hover:text-blue-400 transition-colors"
+            className="flex flex-col items-center gap-2 text-white hover:text-cyan-300 transition-colors"
           >
-            <span className="text-2xl">🗺️</span>
+            <Navigation className="h-8 w-8" />
             <span className="text-sm">ניווט ב-Waze</span>
           </a>
         </div>

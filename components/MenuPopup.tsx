@@ -24,7 +24,7 @@ const LINKS = [
   { href: '#contact', label: 'יצירת קשר' },
   {
     href: 'https://api.whatsapp.com/send/?phone=972542284283&text=' +
-      encodeURIComponent('היי, הגעתי מהאתר ואשמח להצעת מחיר.'),
+      encodeURIComponent('הצעת מחיר מהירה — היי, הגעתי מהאתר ואשמח להצעת מחיר.'),
     label: 'הצעת מחיר',
     external: true,
   },
@@ -240,7 +240,10 @@ export default function MenuPopup({ isOpen, onClose }: MenuPopupProps) {
 
           <div className="flex items-center gap-2">
             <a
-              href="https://api.whatsapp.com/send/?phone=972542284283"
+              href={
+                'https://api.whatsapp.com/send/?phone=972542284283&text=' +
+                encodeURIComponent('הצעת מחיר מהירה — היי, הגעתי מהאתר.')
+              }
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5 text-white/85 transition hover:border-[#25D366]/60 hover:bg-[#25D366]/20 hover:text-white"

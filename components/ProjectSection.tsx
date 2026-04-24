@@ -34,7 +34,7 @@ export default function ProjectSection({
 }) {
   const waMessage =
     project.whatsappText?.trim() ||
-    `היי, הגעתי מהאתר (עמוד ${project.title}) ואשמח להצעת מחיר בוואטסאפ.`;
+    `הצעת מחיר מהירה — היי, הגעתי מהאתר (עמוד ${project.title}) ואשמח להצעת מחיר.`;
   const waHref = `https://api.whatsapp.com/send/?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(waMessage)}`;
   return (
     <section 
@@ -115,7 +115,7 @@ export default function ProjectSection({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] mx-2.5 md:mx-0 md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <MessageCircle className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
                 <span className="truncate">{LABEL_WHATSAPP}</span>
@@ -126,7 +126,7 @@ export default function ProjectSection({
               <button
                 type="button"
                 onClick={() => onOpenQuoteBot()}
-                className="inline-flex items-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-right text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:gap-2 md:px-8 md:py-3 md:text-base"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-center text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:w-auto md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <Sparkles className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
                 <span>{LABEL_BOT}</span>
