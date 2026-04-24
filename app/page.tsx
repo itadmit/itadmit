@@ -366,7 +366,7 @@ export default function Home() {
       <MenuPopup isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       
       {/* Navigation Dots - Left Side */}
-      <div className="fixed left-6 md:left-8 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4">
+      <div className="fixed left-4 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-4 md:left-8">
         {displayProjects.map((project, index) => (
           <div key={project.id} className="relative group">
             <a
@@ -462,8 +462,8 @@ export default function Home() {
         />
       )}
 
-      {/* Quote Wizard - יועץ הצעת מחיר חכם */}
-      {!showPreloader && <QuoteWizard />}
+      {/* Quote Wizard - אייקון צף שפותח את צ׳אט הוואטסאפ */}
+      {!showPreloader && <QuoteWizard onOpen={() => setQuoteBotOpen(true)} />}
     </main>
     </>
   );

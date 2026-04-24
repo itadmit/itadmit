@@ -6,24 +6,54 @@ import {
   useEffect,
   useCallback,
   useLayoutEffect,
+  useMemo,
   type CSSProperties,
 } from 'react';
-import { X, MessageCircle, Bot, User, CircleDot } from 'lucide-react';
+import Image from 'next/image';
+import {
+  X,
+  ArrowRight,
+  Phone,
+  Video,
+  MoreVertical,
+  Check,
+  CheckCheck,
+  Paperclip,
+  Smile,
+  Send,
+  Mic,
+} from 'lucide-react';
 import type { Question, Lead } from '@/lib/quote-wizard';
 import { defaultQuestions, getFirstQuestion, getNextQuestion } from '@/lib/quote-wizard';
 
 const WHATSAPP_PHONE = '972542284283';
+const AGENT_NAME = 'תדמית אינטראקטיב';
+const AGENT_SUB_ONLINE = 'מחובר/ת עכשיו';
+const AGENT_SUB_TYPING = 'כותב/ת...';
+const AGENT_AVATAR = '/images/tadmit-logo.png';
+
+/** קצבי תגובה — כך שהשיחה תרגיש אנושית ולא רובוטית */
+const TYPING_MS = {
+  micro: 380,
+  short: 560,
+  medium: 820,
+  long: 1100,
+  openFirst: 650,
+  openSecond: 950,
+} as const;
 
 type ChatRole = 'bot' | 'user';
+type MsgStatus = 'sent' | 'delivered' | 'read';
 
 interface ChatLine {
   id: string;
   role: ChatRole;
   text: string;
+  ts: number;
+  status?: MsgStatus;
 }
 
 type Phase = 'wizard' | 'contact' | 'success';
-
 type ContactField = 'name' | 'phone' | 'email' | 'company';
 
 function waUrl(text: string) {
@@ -42,10 +72,16 @@ function formatMultiAnswer(q: Question, ids: string[]): string {
   return ids.map((id) => optionLabel(q, id)).join(', ');
 }
 
-/** השוואת טקסט חופשי לאפשרויות (בלי אימוג׳י) */
+function formatTime(ts: number): string {
+  const d = new Date(ts);
+  const hh = d.getHours().toString().padStart(2, '0');
+  const mm = d.getMinutes().toString().padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
 function stripForMatch(s: string): string {
   return s
-    .replace(/[\u{1F300}-\u{1F9FF}\u2600-\u26FF\u2700-\u27BF]/gu, '')
+    .replace(/[\u{1F300}-\u{1F9FF}☀-⛿✀-➿]/gu, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -71,31 +107,82 @@ function matchTypedSingleOption(q: Question, raw: string): string | null {
   return null;
 }
 
+/** הודעות אישור אנושיות אחרי בחירת המשתמש — משתנות לפי ההקשר */
+function pickAcknowledgment(q: Question, answer: string | string[]): string | null {
+  const pickFrom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+
+  if (typeof answer === 'string') {
+    if (q.id === 'site-type') {
+      if (answer === 'ecommerce')
+        return pickFrom([
+          'איזה כיף, חנויות זה בדיוק התחום שלנו 🛍️',
+          'נהדר! בנינו עשרות חנויות — יוצא בידיים טובות.',
+        ]);
+      if (answer === 'corporate')
+        return pickFrom([
+          'מעולה, אתר תדמית חזק זה כרטיס הביקור של העסק 🙌',
+          'סבבה — זה משהו שאנחנו עושים המון.',
+        ]);
+      if (answer === 'landing')
+        return pickFrom([
+          'אחלה, דף נחיתה זה מהיר ויעיל ⚡',
+          'כייף, דפי נחיתה ממירים זה הקטע שלנו.',
+        ]);
+      if (answer === 'other')
+        return 'אין בעיה, ספרו בקצרה ונבין יחד איך עוזרים 🙏';
+    }
+    if (q.id === 'ecommerce-type') {
+      if (answer === 'template')
+        return 'בחירה חכמה — יוצאים לדרך מהר ובתקציב חכם.';
+      if (answer === 'custom')
+        return 'מהמם 🎨 מעצבים משהו שאין לאף אחד.';
+    }
+    if (q.id === 'products-count' || q.id === 'pages-count') {
+      if (answer === 'large')
+        return 'כבוד 👏 יש לנו ניסיון בפרויקטים בקנה מידה הזה.';
+      if (answer === 'medium') return 'מצוין, גודל נוח לעבודה.';
+      if (answer === 'small') return 'קומפקטי וממוקד — הכי יעיל 👌';
+    }
+    if (q.id === 'landing-purpose') {
+      if (answer === 'leads')
+        return 'יופי — נבנה משהו שממיר, לא רק יפה 📈';
+      if (answer === 'sales') return 'אחלה, נבנה מסלול רכישה מהיר.';
+      if (answer === 'event') return 'סבבה, נדאג שיהיה פשוט להירשם.';
+    }
+    if (q.id === 'timeline') {
+      if (answer === 'urgent')
+        return 'קיבלנו, נלחץ על הגז 🚀 — נחזור אליכם במהירות.';
+      if (answer === 'month') return 'מעולה, זה לו״ז נוח.';
+      if (answer === 'flexible')
+        return 'אחלה 🙂 זה מאפשר לנו לעצב בלי פשרות.';
+    }
+  }
+
+  if (Array.isArray(answer) && q.id === 'features') {
+    if (answer.includes('none') && answer.length === 1)
+      return 'בסדר גמור, נישאר על הבסיס — זה לרוב כל מה שצריך.';
+    if (answer.length >= 3) return 'וואו, מגוון רחב 🤩 — נצטרך לתכנן היטב.';
+    if (answer.length > 0) return 'רשמתי ✍️';
+  }
+
+  return null;
+}
+
 /** רקע צ'אט בסגנון וואטסאפ (בז׳ + טקסטורה עדינה) */
 const WA_CHAT_BG: CSSProperties = {
-  backgroundColor: '#ece5dd',
+  backgroundColor: '#efeae2',
   backgroundImage: `
-    repeating-linear-gradient(
-      125deg,
-      rgba(0, 0, 0, 0.018) 0px,
-      rgba(0, 0, 0, 0.018) 1px,
-      transparent 1px,
-      transparent 16px
-    ),
-    repeating-linear-gradient(
-      -125deg,
-      rgba(0, 0, 0, 0.012) 0px,
-      rgba(0, 0, 0, 0.012) 1px,
-      transparent 1px,
-      transparent 20px
-    )
+    radial-gradient(circle at 15% 15%, rgba(0,0,0,0.028) 1px, transparent 1.5px),
+    radial-gradient(circle at 85% 35%, rgba(0,0,0,0.022) 1px, transparent 1.5px),
+    radial-gradient(circle at 45% 75%, rgba(0,0,0,0.024) 1px, transparent 1.5px),
+    radial-gradient(circle at 75% 90%, rgba(0,0,0,0.02) 1px, transparent 1.5px)
   `,
+  backgroundSize: '160px 160px, 220px 220px, 190px 190px, 240px 240px',
 };
 
 interface QuoteChatbotModalProps {
   open: boolean;
   onClose: () => void;
-  /** אם לא מועבר — נטען מ־/api/questions או ברירת מחדל */
   questions?: Question[];
 }
 
@@ -125,8 +212,8 @@ export default function QuoteChatbotModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const timersRef = useRef<number[]>([]);
-  /** מסלול השאלות האחרון — חייב להיות מסונכרן לפני getNextQuestion */
   const questionsRef = useRef<Question[]>(questionsProp ?? defaultQuestions);
   const answersRef = useRef(answers);
   useLayoutEffect(() => {
@@ -142,24 +229,40 @@ export default function QuoteChatbotModal({
   };
 
   const pushBot = useCallback((text: string) => {
-    setLines((prev) => [...prev, { id: uid(), role: 'bot', text }]);
+    setLines((prev) => [
+      ...prev,
+      { id: uid(), role: 'bot', text, ts: Date.now() },
+    ]);
   }, []);
 
   const pushUser = useCallback((text: string) => {
-    setLines((prev) => [...prev, { id: uid(), role: 'user', text }]);
+    const id = uid();
+    setLines((prev) => [
+      ...prev,
+      { id, role: 'user', text, ts: Date.now(), status: 'sent' },
+    ]);
+    // תהליך אנושי: נשלח → נמסר → נקרא
+    const t1 = window.setTimeout(() => {
+      setLines((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: 'delivered' } : l))
+      );
+    }, 350);
+    const t2 = window.setTimeout(() => {
+      setLines((prev) =>
+        prev.map((l) => (l.id === id ? { ...l, status: 'read' } : l))
+      );
+    }, 900);
+    timersRef.current.push(t1, t2);
   }, []);
 
-  const withTyping = useCallback(
-    (ms: number, fn: () => void) => {
-      setIsTyping(true);
-      const t = window.setTimeout(() => {
-        setIsTyping(false);
-        fn();
-      }, ms);
-      timersRef.current.push(t);
-    },
-    []
-  );
+  const withTyping = useCallback((ms: number, fn: () => void) => {
+    setIsTyping(true);
+    const t = window.setTimeout(() => {
+      setIsTyping(false);
+      fn();
+    }, ms);
+    timersRef.current.push(t);
+  }, []);
 
   useEffect(() => {
     if (questionsProp?.length) {
@@ -212,10 +315,15 @@ export default function QuoteChatbotModal({
       setCurrentQuestion(first);
       setQuestionHistory([first]);
 
-      withTyping(450, () => {
-        pushBot('היי! טוב לראות אתכם כאן 🙂 אני כאן לעזור עם הצעת מחיר — בלי לחץ ובלי התחייבות.');
-        withTyping(650, () => {
-          pushBot(first.question);
+      withTyping(TYPING_MS.openFirst, () => {
+        pushBot('היי 👋 ברוכים הבאים לתדמית אינטראקטיב!');
+        withTyping(TYPING_MS.short, () => {
+          pushBot(
+            'אני כאן לעזור לכם לקבל הצעת מחיר — בלי לחץ ובלי התחייבות. ניקח דקה קטנה 🙂'
+          );
+          withTyping(TYPING_MS.openSecond, () => {
+            pushBot(first.question);
+          });
         });
       });
     })();
@@ -227,7 +335,9 @@ export default function QuoteChatbotModal({
   }, [open, questionsProp, pushBot, withTyping]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [lines, isTyping, phase, currentQuestion, selectedOptions]);
 
   useEffect(() => {
@@ -242,20 +352,35 @@ export default function QuoteChatbotModal({
     setPhase('contact');
     setCurrentQuestion(null);
     setContactField('name');
-    withTyping(450, () => {
+    withTyping(TYPING_MS.medium, () => {
       pushBot(
-        'מעולה, כבר כמעט סיימנו. רק כדי לשלוח לכם הצעה מסודרת — איך קוראים לכם? (שם מלא)'
+        'מעולה, אלו כל השאלות ששאלתי 😊 רק נשאר לקבל פרטים ואנחנו שולחים לכם הצעה.'
       );
+      withTyping(TYPING_MS.short, () => {
+        pushBot('איך קוראים לכם? (שם מלא)');
+      });
     });
   }, [pushBot, withTyping]);
 
   const advanceQuestion = useCallback(
-    (newAnswers: Record<string, string | string[]>, fromQ: Question, optionId?: string) => {
+    (
+      newAnswers: Record<string, string | string[]>,
+      fromQ: Question,
+      optionId?: string
+    ) => {
       const nextQ = getNextQuestion(
         questionsRef.current,
         fromQ.id,
         fromQ.type === 'single-choice' ? optionId : undefined
       );
+
+      const answerForAck =
+        fromQ.type === 'multi-choice'
+          ? (newAnswers[fromQ.id] as string[])
+          : fromQ.type === 'single-choice'
+            ? optionId ?? ''
+            : (newAnswers[fromQ.id] as string);
+      const ack = pickAcknowledgment(fromQ, answerForAck);
 
       if (nextQ) {
         setAnswers(newAnswers);
@@ -263,12 +388,28 @@ export default function QuoteChatbotModal({
         setQuestionHistory((h) => [...h, nextQ]);
         setSelectedOptions([]);
         setTextInput('');
-        withTyping(550, () => {
-          pushBot(nextQ.question);
-        });
+        if (ack) {
+          withTyping(TYPING_MS.short, () => {
+            pushBot(ack);
+            withTyping(TYPING_MS.long, () => {
+              pushBot(nextQ.question);
+            });
+          });
+        } else {
+          withTyping(TYPING_MS.medium, () => {
+            pushBot(nextQ.question);
+          });
+        }
       } else {
         setAnswers(newAnswers);
-        startContact();
+        if (ack) {
+          withTyping(TYPING_MS.short, () => {
+            pushBot(ack);
+            startContact();
+          });
+        } else {
+          startContact();
+        }
       }
     },
     [pushBot, withTyping, startContact]
@@ -304,18 +445,21 @@ export default function QuoteChatbotModal({
         return;
       }
       pushUser(t);
-      pushBot(
-        'לא הצלחתי לשייך את זה לאחת האפשרויות — אפשר לבחור כפתור למעלה או לנסח אחרת 🙂'
-      );
       setTextInput('');
+      withTyping(TYPING_MS.short, () => {
+        pushBot(
+          'לא הצלחתי לזהות את זה בין האפשרויות 🤔 אפשר ללחוץ על אחד הכפתורים למעלה?'
+        );
+      });
       return;
     }
 
     if (phase === 'wizard' && currentQuestion?.type === 'multi-choice') {
-      pushBot(
-        'כאן בוחרים כמה אפשרויות מהכפתורים למעלה, ואז לוחצים «המשך» 🙂'
-      );
+      pushUser(t);
       setTextInput('');
+      withTyping(TYPING_MS.short, () => {
+        pushBot('כאן עדיף לסמן כפתורים 🙂 אפשר לסמן כמה ואז ללחוץ «המשך».');
+      });
       return;
     }
 
@@ -332,8 +476,9 @@ export default function QuoteChatbotModal({
         pushUser(t);
         setLeadInfo((l) => ({ ...l, name: t }));
         setTextInput('');
-        withTyping(400, () => {
-          pushBot('תודה! מה מספר הטלפון שלכם?');
+        const first = t.split(' ')[0];
+        withTyping(TYPING_MS.short, () => {
+          pushBot(`נעים מאוד, ${first}! 🤝 מה מספר הטלפון שלך?`);
         });
         setContactField('phone');
         return;
@@ -342,14 +487,17 @@ export default function QuoteChatbotModal({
         const digits = t.replace(/\D/g, '');
         if (digits.length < 9) {
           pushUser(t);
-          pushBot('נראה מספר קצר מדי — נסו שוב (לפחות 9 ספרות).');
+          setTextInput('');
+          withTyping(TYPING_MS.micro, () => {
+            pushBot('נראה קצר מדי — אפשר לכתוב שוב? (לפחות 9 ספרות) 📱');
+          });
           return;
         }
         pushUser(t);
         setLeadInfo((l) => ({ ...l, phone: t }));
         setTextInput('');
-        withTyping(400, () => {
-          pushBot('מצוין. מה כתובת האימייל?');
+        withTyping(TYPING_MS.short, () => {
+          pushBot('מעולה 👌 ומה כתובת האימייל?');
         });
         setContactField('email');
         return;
@@ -357,14 +505,17 @@ export default function QuoteChatbotModal({
       if (contactField === 'email') {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t)) {
           pushUser(t);
-          pushBot('נראה שזה לא אימייל תקין — נסו שוב.');
+          setTextInput('');
+          withTyping(TYPING_MS.micro, () => {
+            pushBot('זה לא נראה כמו אימייל תקין — אפשר לנסות שוב? ✉️');
+          });
           return;
         }
         pushUser(t);
         setLeadInfo((l) => ({ ...l, email: t }));
         setTextInput('');
-        withTyping(400, () => {
-          pushBot('אחרון: שם החברה (אופציונלי — אפשר לכתוב «אין»).');
+        withTyping(TYPING_MS.short, () => {
+          pushBot('אחרון אחרון 🙂 שם החברה? (אפשר לכתוב «אין»)');
         });
         setContactField('company');
         return;
@@ -372,7 +523,7 @@ export default function QuoteChatbotModal({
     }
   };
 
-  const submitLeadFix = async (final: typeof leadInfo) => {
+  const submitLead = async (final: typeof leadInfo) => {
     setIsSubmitting(true);
     try {
       const lead: Omit<Lead, 'id' | 'createdAt'> = {
@@ -388,11 +539,16 @@ export default function QuoteChatbotModal({
       if (!res.ok) throw new Error('fail');
       setPhase('success');
       setContactField(null);
-      withTyping(400, () => {
-        pushBot('הפרטים נשלחו בהצלחה! נחזור אליכם בהקדם עם הצעת מחיר.');
+      withTyping(TYPING_MS.short, () => {
+        pushBot(
+          'קיבלנו את הפרטים! 🎉 כבר רצים להכין לכם הצעת מחיר — נחזור אליכם בהקדם.'
+        );
+        withTyping(TYPING_MS.short, () => {
+          pushBot('רוצים לדבר ישירות? אפשר לפתוח וואטסאפ מהכפתור למטה ⬇️');
+        });
       });
     } catch {
-      pushBot('משהו השתבש בשליחה. נסו שוב או כתבו לנו בוואטסאפ.');
+      pushBot('אופס, משהו השתבש בשליחה 😕 נסו שוב או דברו איתנו בוואטסאפ.');
     } finally {
       setIsSubmitting(false);
     }
@@ -405,40 +561,40 @@ export default function QuoteChatbotModal({
     const final = { ...leadInfo, company };
     setLeadInfo(final);
     setTextInput('');
-    void submitLeadFix(final);
+    void submitLead(final);
   };
 
   const buildWhatsAppSummary = () => {
-    const lines = [
+    const parts = [
       'שלום תדמית אינטראקטיב,',
-      'פניתי מהבוט להצעת מחיר באתר.',
+      'פניתי מהצ׳אט להצעת מחיר באתר.',
       '',
       `שם: ${leadInfo.name}`,
       `טלפון: ${leadInfo.phone}`,
       `אימייל: ${leadInfo.email}`,
     ];
-    if (leadInfo.company) lines.push(`חברה: ${leadInfo.company}`);
-    lines.push('', 'תשובות מהשאלון:');
+    if (leadInfo.company) parts.push(`חברה: ${leadInfo.company}`);
+    parts.push('', 'תשובות מהשאלון:');
     for (const [k, v] of Object.entries(answersRef.current)) {
       const q = questions.find((qq) => qq.id === k);
       const key = q?.question ?? k;
       const val = Array.isArray(v) ? v.join(', ') : String(v);
-      lines.push(`• ${key}: ${val}`);
+      parts.push(`• ${key}: ${val}`);
     }
-    return lines.join('\n');
+    return parts.join('\n');
   };
-
-  if (!open) return null;
 
   const showChoiceButtons =
     phase === 'wizard' &&
     currentQuestion?.type === 'single-choice' &&
-    currentQuestion.options;
+    !!currentQuestion.options &&
+    !isTyping;
 
   const showMultiButtons =
     phase === 'wizard' &&
     currentQuestion?.type === 'multi-choice' &&
-    currentQuestion.options;
+    !!currentQuestion.options &&
+    !isTyping;
 
   const showTextRow =
     (phase === 'wizard' &&
@@ -447,28 +603,29 @@ export default function QuoteChatbotModal({
         currentQuestion?.type === 'multi-choice')) ||
     (phase === 'contact' && contactField !== null);
 
-  const placeholder =
-    phase === 'wizard' && currentQuestion?.type === 'text'
-      ? 'כתבו כאן...'
-      : phase === 'wizard' && currentQuestion?.type === 'single-choice'
-        ? 'או הקלידו כאן...'
-        : phase === 'wizard' && currentQuestion?.type === 'multi-choice'
-          ? 'או תארו במילים (לבחירה מרובת יש את הכפתורים)'
-          : contactField === 'name'
-            ? 'שם מלא'
-            : contactField === 'phone'
-              ? 'מספר טלפון'
-              : contactField === 'email'
-                ? 'אימייל'
-                : contactField === 'company'
-                  ? 'שם חברה או «אין»'
-                  : '';
+  const placeholder = useMemo(() => {
+    if (phase === 'wizard' && currentQuestion?.type === 'text')
+      return 'הקלידו הודעה';
+    if (phase === 'wizard' && currentQuestion?.type === 'single-choice')
+      return 'בחרו כפתור או כתבו תשובה';
+    if (phase === 'wizard' && currentQuestion?.type === 'multi-choice')
+      return 'סמנו אפשרויות למעלה';
+    if (contactField === 'name') return 'שם מלא';
+    if (contactField === 'phone') return 'מספר טלפון';
+    if (contactField === 'email') return 'כתובת אימייל';
+    if (contactField === 'company') return 'שם חברה או «אין»';
+    return 'הקלידו הודעה';
+  }, [phase, currentQuestion, contactField]);
 
   const toggleMulti = (id: string) => {
     setSelectedOptions((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
+
+  if (!open) return null;
+
+  const headerSub = isTyping ? AGENT_SUB_TYPING : AGENT_SUB_ONLINE;
 
   return (
     <div
@@ -479,118 +636,121 @@ export default function QuoteChatbotModal({
     >
       <button
         type="button"
-        className="absolute inset-0 bg-[#3d3429]/45 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
         aria-label="סגור"
         onClick={onClose}
       />
 
       <div
-        className="relative flex h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[#ece5dd] shadow-2xl ring-1 ring-black/10 sm:h-[min(640px,90vh)] sm:rounded-2xl"
+        className="relative flex h-[92vh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl bg-[#efeae2] shadow-2xl ring-1 ring-black/10 sm:h-[min(680px,92vh)] sm:rounded-2xl"
         dir="rtl"
       >
-        <div className="flex shrink-0 items-center gap-3 bg-[#128C7E] px-4 py-3 text-white shadow-sm">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
-            <MessageCircle className="h-6 w-6" />
+        {/* Header — WhatsApp style */}
+        <div className="flex shrink-0 items-center gap-2.5 bg-[#008069] px-3 py-2.5 text-white shadow-[0_1px_0_0_rgba(0,0,0,0.15)] sm:px-4 sm:py-3">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-1.5 hover:bg-white/15"
+            aria-label="חזרה"
+          >
+            <ArrowRight className="h-5 w-5" />
+          </button>
+          <div className="relative">
+            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white/15 ring-1 ring-white/30">
+              <Image
+                src={AGENT_AVATAR}
+                alt={AGENT_NAME}
+                width={40}
+                height={40}
+                className="h-10 w-10 object-cover"
+                priority
+              />
+            </div>
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[#25D366] ring-2 ring-[#008069]" />
           </div>
-          <div className="min-w-0 flex-1">
-            <h2 id="quote-bot-title" className="truncate text-lg font-semibold">
-              הצעת מחיר — תדמית אינטראקטיב
+          <div className="min-w-0 flex-1 leading-tight">
+            <h2 id="quote-bot-title" className="truncate text-[15px] font-semibold">
+              {AGENT_NAME}
             </h2>
-            <p className="text-xs text-white/90">מחוברים עכשיו</p>
+            <p className="truncate text-[12px] text-white/85">{headerSub}</p>
+          </div>
+          <div className="hidden items-center gap-1 sm:flex">
+            <button
+              type="button"
+              className="rounded-full p-2 text-white/85 hover:bg-white/10"
+              aria-label="שיחת וידאו"
+              tabIndex={-1}
+            >
+              <Video className="h-5 w-5" />
+            </button>
+            <a
+              href={`tel:0${WHATSAPP_PHONE.slice(3)}`}
+              className="rounded-full p-2 text-white/85 hover:bg-white/10"
+              aria-label="שיחת טלפון"
+            >
+              <Phone className="h-5 w-5" />
+            </a>
+            <button
+              type="button"
+              className="rounded-full p-2 text-white/85 hover:bg-white/10"
+              aria-label="עוד"
+              tabIndex={-1}
+            >
+              <MoreVertical className="h-5 w-5" />
+            </button>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-2 hover:bg-white/15"
+            className="rounded-full p-2 hover:bg-white/15 sm:hidden"
             aria-label="סגור"
           >
-            <X className="h-6 w-6" />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
+        {/* Chat area */}
         <div
-          className="flex min-h-0 flex-1 flex-col"
-        >
-        <div
-          className="flex-1 space-y-2 overflow-y-auto px-2.5 py-3 sm:px-3"
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto px-2.5 py-3 sm:px-3"
           style={WA_CHAT_BG}
         >
-          {lines.map((m) => (
-            <div
-              key={m.id}
-              className={`flex gap-2 ${m.role === 'user' ? 'justify-start' : 'justify-end'}`}
-            >
-              {m.role === 'user' && (
-                <User
-                  className="mt-1 h-5 w-5 shrink-0 text-[#667781]"
-                  aria-hidden
-                />
-              )}
-              <div
-                className={`max-w-[88%] whitespace-pre-wrap rounded-lg px-3 py-2 text-[15px] leading-relaxed shadow-sm ${
-                  m.role === 'user'
-                    ? 'rounded-br-none border border-[#b2e8bc] bg-[#d9fdd3] text-[#111b21]'
-                    : 'rounded-bl-none border border-[#e9edef] bg-white text-[#111b21]'
-                }`}
-              >
-                <span className="flex flex-col gap-1">
-                  {m.text.split('\n').map((line, i) => (
-                    <span key={i} className="block">
-                      {line.startsWith('◇ ') ? (
-                        <span className="inline-flex items-start gap-2">
-                          <CircleDot
-                            className="mt-1.5 h-3.5 w-3.5 shrink-0 text-[#128C7E]"
-                            aria-hidden
-                          />
-                          <span>{line.slice(2)}</span>
-                        </span>
-                      ) : (
-                        line
-                      )}
-                    </span>
-                  ))}
-                </span>
-              </div>
-              {m.role === 'bot' && (
-                <Bot
-                  className="mt-1 h-5 w-5 shrink-0 text-[#667781]"
-                  aria-hidden
-                />
-              )}
-            </div>
-          ))}
+          {/* System pill */}
+          <div className="mb-3 flex justify-center">
+            <span className="rounded-md bg-[#fef6dc] px-3 py-1 text-[11px] font-medium text-[#54656f] shadow-[0_1px_0.5px_rgba(0,0,0,0.08)]">
+              ההודעות מוצפנות מקצה לקצה 🔒
+            </span>
+          </div>
 
-          {isTyping && (
-            <div className="flex justify-end gap-2">
-              <div className="max-w-[88%] rounded-lg rounded-bl-none border border-[#e9edef] bg-white px-4 py-3 shadow-sm">
-                <span className="flex items-center gap-1.5" aria-hidden>
-                  <span
-                    className="inline-block h-2 w-2 animate-bounce rounded-full bg-[#8696a0]"
-                    style={{ animationDelay: '0ms' }}
-                  />
-                  <span
-                    className="inline-block h-2 w-2 animate-bounce rounded-full bg-[#8696a0]"
-                    style={{ animationDelay: '120ms' }}
-                  />
-                  <span
-                    className="inline-block h-2 w-2 animate-bounce rounded-full bg-[#8696a0]"
-                    style={{ animationDelay: '240ms' }}
-                  />
-                </span>
-              </div>
-              <Bot className="mt-1 h-5 w-5 shrink-0 text-[#667781]" aria-hidden />
-            </div>
-          )}
+          <div className="space-y-1">
+            {lines.map((m, i) => {
+              const prev = lines[i - 1];
+              const sameAsPrev = prev && prev.role === m.role;
+              return (
+                <MessageBubble
+                  key={m.id}
+                  role={m.role}
+                  text={m.text}
+                  ts={m.ts}
+                  status={m.status}
+                  grouped={!!sameAsPrev}
+                />
+              );
+            })}
 
+            {isTyping && <TypingBubble />}
+          </div>
+
+          {/* Choice buttons inside chat area (like WhatsApp interactive buttons) */}
           {showChoiceButtons && (
-            <div className="flex flex-wrap justify-end gap-2 px-0.5 pb-1 pt-1">
-              {currentQuestion.options?.map((opt) => (
+            <div className="mt-2 flex flex-wrap justify-end gap-2 pb-1">
+              {currentQuestion!.options!.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
-                  disabled={isTyping || isSubmitting}
+                  disabled={isSubmitting}
                   onClick={() => commitSingleChoice(opt.id)}
-                  className="max-w-[100%] rounded-2xl border border-[#dadce0] bg-white px-4 py-2.5 text-right text-[13px] font-medium leading-snug text-[#111b21] shadow-sm transition hover:bg-[#f7f8fa] active:scale-[0.98] disabled:opacity-40 sm:text-sm"
+                  className="max-w-full rounded-2xl border border-[#dadce0] bg-white px-4 py-2.5 text-[13px] font-medium leading-snug text-[#008069] shadow-sm transition hover:bg-[#f0fdf7] active:scale-[0.98] disabled:opacity-40 sm:text-sm"
                 >
                   {opt.label}
                 </button>
@@ -599,33 +759,45 @@ export default function QuoteChatbotModal({
           )}
 
           {showMultiButtons && (
-            <div className="space-y-2 px-0.5 pb-1 pt-1">
+            <div className="mt-2 space-y-2 pb-1">
               <div className="flex flex-wrap justify-end gap-2">
-                {currentQuestion.options?.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={isTyping || isSubmitting}
-                    onClick={() => toggleMulti(opt.id)}
-                    className={`max-w-[100%] rounded-2xl border px-4 py-2.5 text-right text-[13px] font-medium leading-snug shadow-sm transition disabled:opacity-40 sm:text-sm ${
-                      selectedOptions.includes(opt.id)
-                        ? 'border-[#128C7E] bg-[#d3eee9] text-[#111b21]'
-                        : 'border-[#dadce0] bg-white text-[#111b21] hover:bg-[#f7f8fa]'
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                {currentQuestion!.options!.map((opt) => {
+                  const selected = selectedOptions.includes(opt.id);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      disabled={isSubmitting}
+                      onClick={() => toggleMulti(opt.id)}
+                      className={`max-w-full rounded-2xl border px-4 py-2.5 text-[13px] font-medium leading-snug shadow-sm transition disabled:opacity-40 sm:text-sm ${
+                        selected
+                          ? 'border-[#008069] bg-[#d1f2e4] text-[#054d3a]'
+                          : 'border-[#dadce0] bg-white text-[#008069] hover:bg-[#f0fdf7]'
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-2">
+                        <span
+                          className={`inline-flex h-4 w-4 items-center justify-center rounded-sm border ${
+                            selected
+                              ? 'border-[#008069] bg-[#008069] text-white'
+                              : 'border-[#b6bfc4] bg-white'
+                          }`}
+                        >
+                          {selected && <Check className="h-3 w-3" />}
+                        </span>
+                        {opt.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
               <button
                 type="button"
-                disabled={
-                  isTyping || isSubmitting || selectedOptions.length === 0
-                }
+                disabled={isSubmitting || selectedOptions.length === 0}
                 onClick={confirmMulti}
-                className="w-full rounded-2xl bg-[#128C7E] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0f7a6e] disabled:opacity-50"
+                className="w-full rounded-full bg-[#008069] py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#026a58] disabled:opacity-50"
               >
-                המשך
+                שליחת הבחירה
               </button>
             </div>
           )}
@@ -633,21 +805,50 @@ export default function QuoteChatbotModal({
           <div ref={bottomRef} />
         </div>
 
-        <div className="shrink-0 border-t border-[#d1d7db] bg-[#f0f2f5] p-2 sm:p-2.5">
-
+        {/* Footer input — WhatsApp input bar */}
+        <div className="shrink-0 bg-[#f0f2f5] px-2 py-2 sm:px-3 sm:py-2.5">
           {phase === 'success' && (
-            <a
-              href={waUrl(buildWhatsAppSummary())}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#25d366] py-3 text-center text-base font-semibold text-[#05422a] transition hover:bg-[#20bd5a]"
-            >
-              שליחה בוואטסאפ (עם כל הפרטים)
-            </a>
+            <div className="mb-2 space-y-2">
+              <a
+                href={waUrl(buildWhatsAppSummary())}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1fbd58]"
+              >
+                <svg viewBox="0 0 32 32" className="h-4 w-4 fill-current" aria-hidden>
+                  <path d="M16 3a13 13 0 0 0-11.15 19.7L3 29l6.46-1.78A13 13 0 1 0 16 3zm0 23.7a10.7 10.7 0 0 1-5.45-1.48l-.39-.23-3.84 1.06 1.03-3.74-.25-.4A10.68 10.68 0 1 1 16 26.7zm6.15-8a15 15 0 0 1-1.45-.54c-.19-.09-.33-.13-.47.13s-.54.68-.66.83-.25.17-.47.06a8.68 8.68 0 0 1-2.54-1.57 9.57 9.57 0 0 1-1.77-2.2c-.19-.33 0-.5.14-.66s.33-.36.5-.54a2.25 2.25 0 0 0 .33-.55.6.6 0 0 0 0-.58c-.09-.18-.47-1.14-.65-1.56s-.35-.36-.47-.37l-.4 0a.78.78 0 0 0-.56.26 2.35 2.35 0 0 0-.73 1.76 4.08 4.08 0 0 0 .85 2.16 9.37 9.37 0 0 0 3.58 3.58 4.52 4.52 0 0 0 2.38.87 2.2 2.2 0 0 0 1.45-.57 2 2 0 0 0 .46-1.24c.05-.23.05-.43 0-.48s-.17-.08-.35-.17z" />
+                </svg>
+                שליחה בוואטסאפ (עם כל הפרטים)
+              </a>
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full rounded-full border border-[#dadce0] bg-white py-2.5 text-sm text-[#3b4a54] hover:bg-[#f7f8fa]"
+              >
+                סגירה
+              </button>
+            </div>
           )}
 
           {showTextRow && (
-              <div className="flex gap-2">
+            <div className="flex items-end gap-1.5">
+              <button
+                type="button"
+                className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#54656f] transition hover:bg-black/5 sm:flex"
+                aria-label="אימוג׳י"
+                tabIndex={-1}
+              >
+                <Smile className="h-6 w-6" />
+              </button>
+              <button
+                type="button"
+                className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#54656f] transition hover:bg-black/5 sm:flex"
+                aria-label="צירוף"
+                tabIndex={-1}
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+              <div className="flex min-w-0 flex-1 items-center rounded-3xl bg-white px-3 py-1 shadow-sm">
                 <input
                   type={
                     contactField === 'email'
@@ -660,6 +861,7 @@ export default function QuoteChatbotModal({
                   onChange={(e) => setTextInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key !== 'Enter') return;
+                    e.preventDefault();
                     if (contactField === 'company') {
                       handleCompanySend();
                     } else {
@@ -668,35 +870,130 @@ export default function QuoteChatbotModal({
                   }}
                   placeholder={placeholder}
                   disabled={isTyping || isSubmitting}
-                  className="min-w-0 flex-1 rounded-full border border-[#d1d7db] bg-white px-4 py-2.5 text-right text-sm text-[#111b21] placeholder:text-[#8696a0] focus:border-[#128C7E] focus:outline-none focus:ring-2 focus:ring-[#128C7E]/20 disabled:opacity-50"
+                  className="w-full min-w-0 bg-transparent py-2 text-[15px] leading-snug text-[#111b21] placeholder:text-[#8696a0] focus:outline-none disabled:opacity-60"
                 />
-                <button
-                  type="button"
-                  disabled={isTyping || isSubmitting}
-                  onClick={() =>
-                    contactField === 'company'
-                      ? handleCompanySend()
-                      : sendTextAnswer()
-                  }
-                  className="shrink-0 rounded-full bg-[#128C7E] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0f7a6e] disabled:opacity-50"
-                >
-                  {isSubmitting ? '...' : 'שלח'}
-                </button>
               </div>
-            )}
-
-          {phase === 'success' && (
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full rounded-2xl border border-[#dadce0] bg-white py-2.5 text-sm text-[#3b4a54] hover:bg-[#f7f8fa]"
-            >
-              סגירה
-            </button>
+              <button
+                type="button"
+                disabled={isTyping || isSubmitting || !textInput.trim()}
+                onClick={() =>
+                  contactField === 'company'
+                    ? handleCompanySend()
+                    : sendTextAnswer()
+                }
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#008069] text-white shadow-sm transition hover:bg-[#026a58] disabled:cursor-not-allowed disabled:bg-[#54656f]/60"
+                aria-label={textInput.trim() ? 'שלח' : 'הקלטה'}
+              >
+                {isSubmitting ? (
+                  <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : textInput.trim() ? (
+                  <Send className="h-[18px] w-[18px]" />
+                ) : (
+                  <Mic className="h-5 w-5" />
+                )}
+              </button>
+            </div>
           )}
         </div>
-        </div>
       </div>
+    </div>
+  );
+}
+
+/* ---------- תתי־רכיבים ---------- */
+
+interface BubbleProps {
+  role: ChatRole;
+  text: string;
+  ts: number;
+  status?: MsgStatus;
+  grouped: boolean;
+}
+
+function MessageBubble({ role, text, ts, status, grouped }: BubbleProps) {
+  const isUser = role === 'user';
+  return (
+    <div
+      className={`flex ${isUser ? 'justify-start' : 'justify-end'} ${grouped ? 'mt-0.5' : 'mt-1.5'}`}
+    >
+      <div
+        className={`relative max-w-[82%] px-2.5 py-1.5 pl-10 pr-2.5 text-[14.5px] leading-[1.35] shadow-[0_1px_0.5px_rgba(0,0,0,0.13)] ${
+          isUser
+            ? `bg-[#d9fdd3] text-[#111b21] ${grouped ? 'rounded-2xl rounded-br-2xl' : 'rounded-2xl rounded-br-sm'}`
+            : `bg-white text-[#111b21] ${grouped ? 'rounded-2xl rounded-bl-2xl' : 'rounded-2xl rounded-bl-sm'}`
+        }`}
+      >
+        {!grouped && (
+          <span
+            className={`absolute bottom-0 h-3 w-3 ${
+              isUser
+                ? 'right-[-6px]'
+                : 'left-[-6px]'
+            }`}
+            aria-hidden
+          >
+            <svg viewBox="0 0 12 12" className="h-3 w-3">
+              {isUser ? (
+                <path d="M0 0 L12 0 L12 12 Z" fill="#d9fdd3" />
+              ) : (
+                <path d="M0 0 L12 0 L0 12 Z" fill="#ffffff" />
+              )}
+            </svg>
+          </span>
+        )}
+        <span className="block whitespace-pre-wrap break-words text-right">
+          {text}
+        </span>
+        <span className="pointer-events-none absolute bottom-[3px] left-2 flex items-center gap-1 text-[10.5px] leading-none text-[#667781]">
+          <span>{formatTime(ts)}</span>
+          {isUser && <StatusTicks status={status} />}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function StatusTicks({ status }: { status?: MsgStatus }) {
+  if (!status) return null;
+  if (status === 'sent') return <Check className="h-3 w-3 text-[#667781]" aria-hidden />;
+  if (status === 'delivered')
+    return <CheckCheck className="h-3.5 w-3.5 text-[#667781]" aria-hidden />;
+  return <CheckCheck className="h-3.5 w-3.5 text-[#53bdeb]" aria-hidden />;
+}
+
+function TypingBubble() {
+  return (
+    <div className="mt-1.5 flex justify-end">
+      <div className="relative rounded-2xl rounded-bl-sm bg-white px-3 py-2.5 shadow-[0_1px_0.5px_rgba(0,0,0,0.13)]">
+        <span
+          className="absolute bottom-0 left-[-6px] h-3 w-3"
+          aria-hidden
+        >
+          <svg viewBox="0 0 12 12" className="h-3 w-3">
+            <path d="M0 0 L12 0 L0 12 Z" fill="#ffffff" />
+          </svg>
+        </span>
+        <span className="flex items-center gap-1" aria-hidden>
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full bg-[#8696a0] motion-safe:animate-[qs-bounce_1.2s_ease-in-out_infinite]"
+            style={{ animationDelay: '0ms' }}
+          />
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full bg-[#8696a0] motion-safe:animate-[qs-bounce_1.2s_ease-in-out_infinite]"
+            style={{ animationDelay: '170ms' }}
+          />
+          <span
+            className="inline-block h-1.5 w-1.5 rounded-full bg-[#8696a0] motion-safe:animate-[qs-bounce_1.2s_ease-in-out_infinite]"
+            style={{ animationDelay: '340ms' }}
+          />
+        </span>
+      </div>
+      <style jsx>{`
+        @keyframes qs-bounce {
+          0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+          40% { transform: translateY(-3px); opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

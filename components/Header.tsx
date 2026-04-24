@@ -7,11 +7,9 @@ import { useState } from 'react';
 
 export default function Header({ onMenuClick }: { onMenuClick?: () => void }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-20 flex items-center justify-between w-full header px-6 md:px-[18%]">
-      <div className="flex items-center justify-between w-full">
-        
-        {/* Right - Logo */}
-        <div className="flex items-center">
+    <header className="header fixed left-0 right-0 top-0 z-50 flex h-20 w-full items-center justify-between px-4 md:px-[12%] lg:px-[14%]">
+      <div className="flex w-full items-center justify-between">
+        <div className="flex items-center max-md:translate-x-2 md:translate-x-0">
           <Link href="/" className="flex items-center">
             <Image
               src="/images/tadmit-logo.png"
