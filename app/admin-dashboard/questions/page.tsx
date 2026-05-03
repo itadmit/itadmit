@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Trash2, Save, GripVertical, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { Question, QuestionOption } from '@/lib/quote-wizard';
 import AdminShell from '@/components/admin/AdminShell';
+import { toast } from '@/components/admin/Toaster';
 
 export default function QuestionsPage() {
   const router = useRouter();
@@ -49,10 +50,12 @@ export default function QuestionsPage() {
         body: JSON.stringify(questions),
       });
       if (res.ok) {
-        alert('השאלות נשמרו בהצלחה!');
+        toast.success('השאלות נשמרו בהצלחה');
+      } else {
+        toast.error('שגיאה בשמירה');
       }
     } catch (error) {
-      alert('שגיאה בשמירה');
+      toast.error('שגיאה בשמירה');
     } finally {
       setSaving(false);
     }
@@ -60,16 +63,18 @@ export default function QuestionsPage() {
 
   const handleReset = async () => {
     if (!confirm('האם לאפס לשאלות ברירת המחדל? כל השינויים יימחקו.')) return;
-    
+
     try {
       const res = await fetch('/api/questions', { method: 'PATCH' });
       if (res.ok) {
         const data = await res.json();
         setQuestions(data.questions);
-        alert('השאלות אופסו בהצלחה!');
+        toast.success('השאלות אופסו בהצלחה');
+      } else {
+        toast.error('שגיאה באיפוס');
       }
     } catch (error) {
-      alert('שגיאה באיפוס');
+      toast.error('שגיאה באיפוס');
     }
   };
 

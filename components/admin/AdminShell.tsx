@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
+import Toaster from './Toaster';
 
 interface NavItem {
   label: string;
@@ -229,6 +230,7 @@ export default function AdminShell({
 
         {children}
       </main>
+      <Toaster />
     </div>
   );
 }

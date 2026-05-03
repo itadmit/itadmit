@@ -7,6 +7,7 @@ import { ProjectData } from '@/components/ProjectSection';
 import { Copy, Trash2, Plus, Save, X, ImageIcon, Check } from 'lucide-react';
 import AdminShell from '@/components/admin/AdminShell';
 import TestEmailButton from '@/components/admin/TestEmailButton';
+import { toast } from '@/components/admin/Toaster';
 
 // טיפוס למודל בחירת תמונה
 type MediaModalType = 'logo' | 'desktop' | 'mobile' | null;
@@ -66,13 +67,13 @@ export default function AdminDashboard() {
 
       if (res.ok && data.success) {
         loadImages();
-        alert('התמונה נמחקה בהצלחה!');
+        toast.success('התמונה נמחקה בהצלחה');
       } else {
-        alert(data.error || 'שגיאה במחיקת התמונה');
+        toast.error(data.error || 'שגיאה במחיקת התמונה');
       }
     } catch (error) {
       console.error('Delete error:', error);
-      alert('שגיאה במחיקת התמונה');
+      toast.error('שגיאה במחיקת התמונה');
     } finally {
       setDeletingImage(null);
     }
@@ -210,15 +211,15 @@ export default function AdminDashboard() {
           }
         }
         
-        alert(`הקובץ ${data.fileName} הועלה בהצלחה!`);
+        toast.success(`הקובץ ${data.fileName} הועלה בהצלחה`);
       } else {
         const msg =
           typeof data?.error === 'string' ? data.error : 'שגיאה בהעלאת הקובץ';
-        alert(msg);
+        toast.error(msg);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('שגיאה בהעלאת הקובץ');
+      toast.error('שגיאה בהעלאת הקובץ');
     } finally {
       setUploading(null);
     }
@@ -246,17 +247,17 @@ export default function AdminDashboard() {
       if (res.ok && data.success) {
         loadImages();
         applyPath(data.path);
-        alert(
-          `הקובץ ${data.fileName} הועלה ושויך לרקע. אל תשכח ללחוץ "שמור רקעים".`
+        toast.success(
+          `הקובץ ${data.fileName} הועלה ושויך לרקע — אל תשכחי ללחוץ "שמור רקעים"`
         );
       } else {
         const msg =
           typeof data?.error === 'string' ? data.error : 'שגיאה בהעלאת הקובץ';
-        alert(msg);
+        toast.error(msg);
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('שגיאה בהעלאת הקובץ');
+      toast.error('שגיאה בהעלאת הקובץ');
     } finally {
       setUploading(null);
     }
@@ -278,10 +279,10 @@ export default function AdminDashboard() {
         setSelectedProject(dup);
         setIsEditing(true);
         setEditedProject({ ...dup });
-        alert('הפרויקט שוכפל בהצלחה!');
+        toast.success('הפרויקט שוכפל בהצלחה');
       }
     } catch (error) {
-      alert('שגיאה בשכפול הפרויקט');
+      toast.error('שגיאה בשכפול הפרויקט');
     }
   };
 
@@ -304,10 +305,10 @@ export default function AdminDashboard() {
             setEditedProject(null);
           }
         }
-        alert('הפרויקט נמחק בהצלחה!');
+        toast.success('הפרויקט נמחק בהצלחה');
       }
     } catch (error) {
-      alert('שגיאה במחיקת הפרויקט');
+      toast.error('שגיאה במחיקת הפרויקט');
     }
   };
 
@@ -329,12 +330,12 @@ export default function AdminDashboard() {
         setSelectedProject(editedProject);
         setIsEditing(false);
         setEditedProject(null);
-        alert('הפרויקט נשמר בהצלחה!');
+        toast.success('הפרויקט נשמר בהצלחה');
       } else {
-        alert('שגיאה בשמירת הפרויקט');
+        toast.error('שגיאה בשמירת הפרויקט');
       }
     } catch (error) {
-      alert('שגיאה בשמירת הפרויקט');
+      toast.error('שגיאה בשמירת הפרויקט');
     }
   };
 
@@ -355,10 +356,10 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(siteSettingsEdit),
       });
-      if (res.ok) alert('הגדרות הרקע נשמרו');
-      else alert('שגיאה בשמירה');
+      if (res.ok) toast.success('הגדרות הרקע נשמרו');
+      else toast.error('שגיאה בשמירה');
     } catch {
-      alert('שגיאה בשמירה');
+      toast.error('שגיאה בשמירה');
     }
   };
 
@@ -410,11 +411,11 @@ export default function AdminDashboard() {
           setSelectedProject(removed);
         }
       } else {
-        alert('שגיאה בעדכון הסדר');
+        toast.error('שגיאה בעדכון הסדר');
       }
     } catch (error) {
       console.error('Error updating order:', error);
-      alert('שגיאה בעדכון הסדר');
+      toast.error('שגיאה בעדכון הסדר');
     }
 
     setDraggedProject(null);

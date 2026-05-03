@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Trash2, Phone, Mail, Building, Calendar, MessageSquare, Eye, X, CheckCircle, Clock, Send } from 'lucide-react';
 import { Lead } from '@/lib/quote-wizard';
 import AdminShell from '@/components/admin/AdminShell';
+import { toast } from '@/components/admin/Toaster';
 
 const statusLabels: Record<
   string,
@@ -81,9 +82,12 @@ export default function LeadsPage() {
       if (res.ok) {
         setLeads(leads.filter(l => l.id !== id));
         if (selectedLead?.id === id) setSelectedLead(null);
+        toast.success('הליד נמחק');
+      } else {
+        toast.error('שגיאה במחיקה');
       }
     } catch (error) {
-      alert('שגיאה במחיקה');
+      toast.error('שגיאה במחיקה');
     }
   };
 
@@ -99,9 +103,11 @@ export default function LeadsPage() {
         if (selectedLead?.id === id) {
           setSelectedLead({ ...selectedLead, status: status as Lead['status'] });
         }
+      } else {
+        toast.error('שגיאה בעדכון');
       }
     } catch (error) {
-      alert('שגיאה בעדכון');
+      toast.error('שגיאה בעדכון');
     }
   };
 
