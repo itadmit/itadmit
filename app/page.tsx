@@ -247,6 +247,7 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [quoteBotOpen, setQuoteBotOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dotsContainerRef = useRef<HTMLDivElement>(null);
   const [sitePageBgs, setSitePageBgs] = useState({
     moreProjectsBackground: '/images/bg/bg-contact.jpg',
     moreProjectsBackgroundMobile: '/images/bg/bg-contact.jpg',
@@ -316,6 +317,19 @@ export default function Home() {
     };
   }, [showPreloader, displayProjects.length]);
 
+  useEffect(() => {
+    const container = dotsContainerRef.current;
+    if (!container) return;
+    const activeDot = container.children[activeSection] as HTMLElement | undefined;
+    if (!activeDot) return;
+    const containerRect = container.getBoundingClientRect();
+    const dotRect = activeDot.getBoundingClientRect();
+    const offset = (dotRect.top + dotRect.height / 2) - (containerRect.top + containerRect.height / 2);
+    if (Math.abs(offset) > 1) {
+      container.scrollBy({ top: offset, behavior: 'smooth' });
+    }
+  }, [activeSection]);
+
   const handlePreloaderComplete = () => {
     setShowPreloader(false);
   };
@@ -356,7 +370,16 @@ export default function Home() {
       <MenuPopup isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
       
       {/* Navigation Dots - Left Side */}
-      <div className="fixed left-2.5 top-1/2 z-50 flex -translate-y-1/2 flex-col gap-2.5 md:left-8 md:gap-4">
+      <div
+        ref={dotsContainerRef}
+        className="dots-nav fixed left-2.5 top-1/2 z-50 flex max-h-32 -translate-y-1/2 flex-col gap-2.5 overflow-y-auto py-3 pr-1 md:left-8 md:max-h-48 md:gap-4 md:py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={{
+          maskImage:
+            'linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)',
+          WebkitMaskImage:
+            'linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)',
+        }}
+      >
         {displayProjects.map((project, index) => (
           <div key={project.id} className="relative group">
             <a
