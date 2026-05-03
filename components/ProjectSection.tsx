@@ -97,7 +97,7 @@ export default function ProjectSection({
           </p>
 
           {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
-          <div className="flex flex-col gap-3 pt-4 md:gap-4 md:pt-8 items-start w-full max-w-4xl">
+          <div className="flex flex-col gap-3 pt-4 md:gap-4 md:pt-8 items-start w-full max-w-4xl md:max-w-xl">
             <div className="flex w-full flex-nowrap items-center gap-2 md:gap-4">
               {project.siteUrl !== '#' && (
                 <a
