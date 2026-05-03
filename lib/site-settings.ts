@@ -1,8 +1,5 @@
-import { getDb } from './db';
 import { ensureNeonSchema } from './ensure-neon-schema';
-import { getNeon, isNeonEnabled } from './neon';
-import fs from 'fs';
-import path from 'path';
+import { getNeon } from './neon';
 
 export interface SiteSettings {
   moreProjectsBackground: string;
@@ -17,36 +14,6 @@ export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   contactBackground: '/images/bg/bg-contact-2.jpg',
   contactBackgroundMobile: '/images/bg/bg-contact-2.jpg',
 };
-
-const SETTINGS_PATH = path.join(process.cwd(), 'data', 'site-settings.json');
-
-function readJsonSettings(): SiteSettings {
-  try {
-    if (!fs.existsSync(SETTINGS_PATH)) return { ...SITE_SETTINGS_DEFAULTS };
-    const raw = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8')) as Partial<SiteSettings>;
-    return mergeWithDefaults(raw);
-  } catch {
-    return { ...SITE_SETTINGS_DEFAULTS };
-  }
-}
-
-function mergeWithDefaults(raw: Partial<SiteSettings>): SiteSettings {
-  const base = { ...SITE_SETTINGS_DEFAULTS, ...raw };
-  return {
-    moreProjectsBackground: base.moreProjectsBackground,
-    moreProjectsBackgroundMobile:
-      base.moreProjectsBackgroundMobile || base.moreProjectsBackground,
-    contactBackground: base.contactBackground,
-    contactBackgroundMobile:
-      base.contactBackgroundMobile || base.contactBackground,
-  };
-}
-
-function writeJsonSettings(settings: SiteSettings): void {
-  const dir = path.dirname(SETTINGS_PATH);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2), 'utf8');
-}
 
 function rowsToSiteSettings(
   rows: { key: string; value: string }[]
@@ -65,32 +32,15 @@ function rowsToSiteSettings(
   };
 }
 
-/** קריאה מאוחדת: Neon → SQLite → JSON */
 export async function getSiteSettings(): Promise<SiteSettings> {
-  if (isNeonEnabled()) {
-    await ensureNeonSchema();
-    const sql = getNeon();
-    const rows = (await sql`SELECT key, value FROM site_settings`) as {
-      key: string;
-      value: string;
-    }[];
-    if (rows.length === 0) return { ...SITE_SETTINGS_DEFAULTS };
-    return rowsToSiteSettings(rows);
-  }
-
-  const db = getDb();
-  if (db) {
-    try {
-      const rows = db
-        .prepare(`SELECT key, value FROM site_settings`)
-        .all() as { key: string; value: string }[];
-      return rowsToSiteSettings(rows);
-    } catch {
-      return readJsonSettings();
-    }
-  }
-
-  return readJsonSettings();
+  await ensureNeonSchema();
+  const sql = getNeon();
+  const rows = (await sql`SELECT key, value FROM site_settings`) as {
+    key: string;
+    value: string;
+  }[];
+  if (rows.length === 0) return { ...SITE_SETTINGS_DEFAULTS };
+  return rowsToSiteSettings(rows);
 }
 
 export async function updateSiteSettings(
@@ -116,42 +66,18 @@ export async function updateSiteSettings(
         : current.contactBackgroundMobile,
   };
 
-  if (isNeonEnabled()) {
-    await ensureNeonSchema();
-    const sql = getNeon();
-    const pairs: [string, string][] = [
-      ['more_projects_background', next.moreProjectsBackground],
-      [
-        'more_projects_background_mobile',
-        next.moreProjectsBackgroundMobile,
-      ],
-      ['contact_background', next.contactBackground],
-      ['contact_background_mobile', next.contactBackgroundMobile],
-    ];
-    for (const [key, value] of pairs) {
-      await sql`
-        INSERT INTO site_settings (key, value) VALUES (${key}, ${value})
-        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
-      `;
-    }
-    return next;
+  const sql = getNeon();
+  const pairs: [string, string][] = [
+    ['more_projects_background', next.moreProjectsBackground],
+    ['more_projects_background_mobile', next.moreProjectsBackgroundMobile],
+    ['contact_background', next.contactBackground],
+    ['contact_background_mobile', next.contactBackgroundMobile],
+  ];
+  for (const [key, value] of pairs) {
+    await sql`
+      INSERT INTO site_settings (key, value) VALUES (${key}, ${value})
+      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+    `;
   }
-
-  const db = getDb();
-  if (db) {
-    const upsert = db.prepare(
-      `INSERT OR REPLACE INTO site_settings (key, value) VALUES (?, ?)`
-    );
-    upsert.run('more_projects_background', next.moreProjectsBackground);
-    upsert.run(
-      'more_projects_background_mobile',
-      next.moreProjectsBackgroundMobile
-    );
-    upsert.run('contact_background', next.contactBackground);
-    upsert.run('contact_background_mobile', next.contactBackgroundMobile);
-  } else {
-    writeJsonSettings(next);
-  }
-
   return next;
 }

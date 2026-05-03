@@ -11,7 +11,7 @@ import CircularTimer from "@/components/CircularTimer";
 import QuoteWizard from "@/components/QuoteWizard";
 import QuoteChatbotModal from "@/components/QuoteChatbotModal";
 
-// קריאת פרויקטים מה-API
+// קריאת פרויקטים מה-API (Neon)
 function useProjects() {
   const [projects, setProjects] = useState<ProjectData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,22 +20,12 @@ function useProjects() {
     fetch('/api/projects', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        setProjects(data);
+        setProjects(Array.isArray(data) ? data : []);
         setLoading(false);
       })
       .catch(() => {
-        // Fallback - נטען את ה-JSON ישירות
-        fetch('/data/projects.json')
-          .then(res => res.json())
-          .then(data => {
-            setProjects(data);
-            setLoading(false);
-          })
-          .catch(() => {
-            // אם גם זה נכשל, נשתמש ב-initialProjects
-            setProjects(initialProjects);
-            setLoading(false);
-          });
+        setProjects([]);
+        setLoading(false);
       });
   }, []);
 
@@ -289,8 +279,8 @@ export default function Home() {
       .catch(() => {});
   }, []);
   
-  // Fallback לפרויקטים התחלתיים אם עדיין טוען או אין פרויקטים
-  const displayProjects = (loading || projects.length === 0) ? initialProjects : projects;
+  // בזמן טעינה — מציגים placeholder כדי שלא יהיה ריק. אחרי טעינה — נתוני אמת מ-Neon.
+  const displayProjects = loading ? initialProjects : projects;
 
   useEffect(() => {
     if (showPreloader) return;

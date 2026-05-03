@@ -314,9 +314,11 @@ export default function AdminDashboard() {
   const handleSave = async () => {
     if (!editedProject) return;
 
+    const isNew = !projects.some(p => p.id === editedProject.id);
+
     try {
       const res = await fetch('/api/projects', {
-        method: 'PUT',
+        method: isNew ? 'POST' : 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editedProject),
       });
@@ -328,6 +330,8 @@ export default function AdminDashboard() {
         setIsEditing(false);
         setEditedProject(null);
         alert('הפרויקט נשמר בהצלחה!');
+      } else {
+        alert('שגיאה בשמירת הפרויקט');
       }
     } catch (error) {
       alert('שגיאה בשמירת הפרויקט');
