@@ -98,7 +98,7 @@ export default function ProjectSection({
 
           {/* CTAs: צפייה + וואטסאפ בשורה, בוט מתחת — גדלים כמו קודם */}
           <div className="flex flex-col gap-3 pt-4 md:gap-4 md:pt-8 items-start w-full max-w-4xl">
-            <div className="flex flex-nowrap items-center gap-2 md:flex-wrap md:gap-4">
+            <div className="flex w-full flex-nowrap items-center gap-2 md:gap-4">
               {project.siteUrl !== '#' && (
                 <a
                   href={project.siteUrl}
@@ -115,7 +115,7 @@ export default function ProjectSection({
                 href={waHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:flex-none md:gap-2 md:px-8 md:py-3 md:text-base"
+                className="inline-flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded bg-[#25D366] px-3 py-2 text-[13px] font-medium text-white transition-colors hover:bg-[#20BA5A] md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <MessageCircle className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
                 <span className="truncate">{LABEL_WHATSAPP}</span>
@@ -126,7 +126,7 @@ export default function ProjectSection({
               <button
                 type="button"
                 onClick={() => onOpenQuoteBot()}
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-center text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:w-auto md:gap-2 md:px-8 md:py-3 md:text-base"
+                className="inline-flex w-full items-center justify-center gap-1.5 rounded border-2 border-white bg-transparent px-3 py-2 text-center text-[12.5px] font-medium text-white transition-colors hover:bg-white hover:text-black md:gap-2 md:px-8 md:py-3 md:text-base"
               >
                 <Sparkles className="h-4 w-4 shrink-0 md:h-5 md:w-5" aria-hidden />
                 <span>{LABEL_BOT}</span>

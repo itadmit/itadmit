@@ -46,6 +46,8 @@ export default function AdminDashboard() {
   const [editedProject, setEditedProject] = useState<ProjectData | null>(null);
   const [uploading, setUploading] = useState<{type: string; progress: number} | null>(null);
   const [draggedProject, setDraggedProject] = useState<string | null>(null);
+  const [draggableProject, setDraggableProject] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState<{ id: string; position: 'before' | 'after' } | null>(null);
   const [mediaModal, setMediaModal] = useState<MediaModalType>(null);
   const [deletingImage, setDeletingImage] = useState<string | null>(null);
 
@@ -366,63 +368,68 @@ export default function AdminDashboard() {
   const handleDragStart = (e: React.DragEvent, projectId: string) => {
     setDraggedProject(projectId);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/html', projectId);
+    e.dataTransfer.setData('text/plain', projectId);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
+  const handleDragOver = (e: React.DragEvent, projectId: string) => {
+    if (!draggedProject || draggedProject === projectId) return;
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position: 'before' | 'after' = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+    if (dragOver?.id !== projectId || dragOver?.position !== position) {
+      setDragOver({ id: projectId, position });
+    }
   };
 
   const handleDrop = async (e: React.DragEvent, targetProjectId: string) => {
     e.preventDefault();
-    
-    if (!draggedProject || draggedProject === targetProjectId) {
-      setDraggedProject(null);
-      return;
-    }
+    e.stopPropagation();
 
-    const draggedIndex = projects.findIndex(p => p.id === draggedProject);
+    const dropInfo = dragOver;
+    const dragged = draggedProject;
+    setDraggedProject(null);
+    setDraggableProject(null);
+    setDragOver(null);
+
+    if (!dragged || dragged === targetProjectId) return;
+
+    const draggedIndex = projects.findIndex(p => p.id === dragged);
     const targetIndex = projects.findIndex(p => p.id === targetProjectId);
+    if (draggedIndex === -1 || targetIndex === -1) return;
 
-    if (draggedIndex === -1 || targetIndex === -1) {
-      setDraggedProject(null);
-      return;
-    }
+    let insertIndex = dropInfo?.position === 'after' ? targetIndex + 1 : targetIndex;
+    if (draggedIndex < insertIndex) insertIndex--;
+    if (insertIndex === draggedIndex) return;
 
-    // יצירת מערך חדש עם הסדר המעודכן
     const newProjects = [...projects];
     const [removed] = newProjects.splice(draggedIndex, 1);
-    newProjects.splice(targetIndex, 0, removed);
+    newProjects.splice(insertIndex, 0, removed);
 
-    // עדכון הסדר ב-API
+    const previous = projects;
+    setProjects(newProjects);
+
     try {
-      const projectIds = newProjects.map(p => p.id);
       const res = await fetch('/api/projects', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectIds }),
+        body: JSON.stringify({ projectIds: newProjects.map(p => p.id) }),
       });
-
-      if (res.ok) {
-        setProjects(newProjects);
-        // אם הפרויקט שנבחר הוא אחד מהפרויקטים שנגררו, עדכן אותו
-        if (selectedProject?.id === draggedProject) {
-          setSelectedProject(removed);
-        }
-      } else {
+      if (!res.ok) {
+        setProjects(previous);
         toast.error('שגיאה בעדכון הסדר');
       }
     } catch (error) {
       console.error('Error updating order:', error);
+      setProjects(previous);
       toast.error('שגיאה בעדכון הסדר');
     }
-
-    setDraggedProject(null);
   };
 
   const handleDragEnd = () => {
     setDraggedProject(null);
+    setDraggableProject(null);
+    setDragOver(null);
   };
 
   if (!authenticated || loading) {
@@ -469,25 +476,41 @@ export default function AdminDashboard() {
                 projects.map((project) => (
                 <div
                   key={project.id}
-                  draggable
+                  draggable={draggableProject === project.id}
                   onDragStart={(e) => handleDragStart(e, project.id)}
-                  onDragOver={handleDragOver}
+                  onDragOver={(e) => handleDragOver(e, project.id)}
                   onDrop={(e) => handleDrop(e, project.id)}
                   onDragEnd={handleDragEnd}
-                  className={`cursor-pointer rounded-xl border p-3 transition ${
+                  className={`relative cursor-pointer rounded-xl border p-3 transition ${
                     selectedProject?.id === project.id
                       ? 'border-emerald-400/50 bg-emerald-500/10'
                       : 'border-white/5 bg-white/[0.03] hover:border-white/15 hover:bg-white/[0.06]'
-                  } ${draggedProject === project.id ? 'opacity-50' : ''}`}
+                  } ${draggedProject === project.id ? 'opacity-40' : ''}`}
                   onClick={() => {
                     setSelectedProject(project);
                     setIsEditing(true);
                     setEditedProject({ ...project });
                   }}
                 >
+                  {dragOver?.id === project.id && draggedProject !== project.id && (
+                    <div
+                      className={`pointer-events-none absolute left-1 right-1 h-0.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.7)] ${
+                        dragOver.position === 'before' ? '-top-1' : '-bottom-1'
+                      }`}
+                    />
+                  )}
                   <div className="flex min-w-0 items-start justify-between gap-2">
                     <div className="flex min-w-0 flex-1 items-center gap-2">
-                      <span className="shrink-0 cursor-move select-none text-white/30">
+                      <span
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          setDraggableProject(project.id);
+                        }}
+                        onMouseUp={() => setDraggableProject(null)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="shrink-0 cursor-grab select-none text-white/30 transition hover:text-white/70 active:cursor-grabbing"
+                        title="גרור לסידור מחדש"
+                      >
                         ☰
                       </span>
                       <div className="min-w-0 flex-1">
