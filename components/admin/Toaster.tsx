@@ -47,7 +47,7 @@ export default function Toaster() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-6 left-1/2 z-[9999] flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4"
+      className="pointer-events-none fixed top-6 left-1/2 z-[9999] flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4"
       dir="rtl"
     >
       {list.map((t) => (

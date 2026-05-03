@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Trash2, Phone, Mail, Building, Calendar, MessageSquare, Eye, X, CheckCircle, Clock, Send } from 'lucide-react';
+import { Trash2, Phone, Mail, Building, Calendar, MessageSquare, MessageCircle, Eye, X, CheckCircle, Clock, Send } from 'lucide-react';
 import { Lead } from '@/lib/quote-wizard';
 import AdminShell from '@/components/admin/AdminShell';
 import { toast } from '@/components/admin/Toaster';
@@ -303,6 +303,17 @@ export default function LeadsPage() {
                     <Phone className="h-4 w-4" />
                     {selectedLead.phone}
                   </a>
+                  {selectedLead.phone && (
+                    <a
+                      href={`https://wa.me/${selectedLead.phone.replace(/\D/g, '').replace(/^0/, '972')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 rounded-lg bg-[#25D366]/15 px-3 py-2 text-[13.5px] font-medium text-[#25D366] ring-1 ring-[#25D366]/30 transition hover:bg-[#25D366]/25"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      שלח וואטסאפ
+                    </a>
+                  )}
                   <a
                     href={`mailto:${selectedLead.email}`}
                     className="flex items-center gap-2 rounded-lg bg-white/[0.04] px-3 py-2 text-[13.5px] text-sky-300 hover:bg-white/[0.08]"
