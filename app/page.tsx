@@ -372,7 +372,7 @@ export default function Home() {
       {/* Navigation Dots - Left Side */}
       <div
         ref={dotsContainerRef}
-        className="dots-nav fixed left-2.5 top-1/2 z-50 flex max-h-44 -translate-y-1/2 flex-col gap-2.5 overflow-y-auto px-2 py-3 md:left-8 md:max-h-72 md:gap-4 md:px-3 md:py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="dots-nav fixed left-2.5 top-1/2 z-50 flex max-h-[19rem] -translate-y-1/2 flex-col gap-2.5 overflow-y-auto px-2 py-3 md:left-8 md:max-h-[29rem] md:gap-4 md:px-3 md:py-4 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         style={{
           maskImage:
             'linear-gradient(to bottom, transparent 0, black 14px, black calc(100% - 14px), transparent 100%)',
